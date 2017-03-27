@@ -1,4 +1,5 @@
 'use strict';
+const eth = require('ethjs-rpc');
 
 const socketCluster = require('./server').getInstance();
 
