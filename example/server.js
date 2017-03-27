@@ -7,7 +7,8 @@ const options = {
 	port: 8000,
 	wsEngine: 'uws',
 	appName: 'wampSocketCluster',
-	workerController: './example/serverWorker.js'
+	workerController: './serverWorker.js',
+	perMessageDeflate: false
 };
 
 const SOCKET_CLUSTER_KEY = Symbol.for("Lisk.SocketClusterServer");

@@ -1,8 +1,8 @@
 'use strict';
 
 const rpcEndpoints = {
-	multiplyByTwo: num => {
-		return num * 2;
+	multiplyByTwo: (num, cb) => {
+		return cb(null, num * 2);
 	}
 };
 
@@ -16,6 +16,7 @@ module.exports.run = function (worker) {
 
 	scServer.on('connection', socket => {
 		wampServer.upgradeToWAMP(socket);
+
 		wampServer.reassignEndpoints(rpcEndpoints);
 	});
 };

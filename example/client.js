@@ -8,7 +8,8 @@ const options = {
 	protocol: 'http',
 	hostname: '127.0.0.1',
 	port: 8000,
-	autoReconnect: true
+	autoReconnect: true,
+	perMessageDeflate: false
 };
 
 function Client() { }
@@ -35,7 +36,7 @@ Client.prototype.callRPCInInterval = function () {
 
 	const interval = setInterval(() => {
 		const randNumber =  Math.floor( Math.random() * 5 );
-		this.socket.wampSend('multiplyByTwo', 2)
+		this.socket.wampSend('multiplyByTwo', randNumber)
 			.then(result => console.log(`RPC result: ${randNumber} * 2 = ${result}`))
 			.catch(err => console.error('RPC multiply by two error'));
 	}, 1000);
@@ -43,7 +44,7 @@ Client.prototype.callRPCInInterval = function () {
 	this.socket.on('disconnect', function () {
 		console.log("DISCONNECTED");
 		clearInterval(interval)
-	} );
+	});
 
 };
 
