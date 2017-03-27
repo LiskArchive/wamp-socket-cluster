@@ -27,8 +27,5 @@ socket.wampSend('multiplyByTwo', 2)
 ### Example usage
 Simple but complete example has been implemented. It includes socket cluster initalization, registering RPC both at client and server side.
 
-### !Achtung
-It is important to start both `require(socketcluster-client)` and `require('socketcluster').SocketCluster` with `perMessageDeflate: false` option as in example
-  
 ### Test
 - `npm test`
