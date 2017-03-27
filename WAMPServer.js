@@ -15,11 +15,15 @@ class WAMPServer {
 
 	upgradeToWAMP(socket) {
 		socket.on('raw', request => {
+			try {
+				request = JSON.parse(request);
+			} catch (ex) {
+				return;
+			}
 			if (v.validate(request, WAMPCallSchema).valid && request.type === WAMPCallSchema.id) {
 				this.processWAMPRequest(request, socket);
 			}
 		});
-
 		return socket;
 	}
 
@@ -27,13 +31,13 @@ class WAMPServer {
 		const procedure = this.registeredEnpoints[request.procedure];
 		if (procedure) {
 			procedure(request.data, (err, data) => {
-				socket.send({
+				socket.send(JSON.stringify({
 					success: !err,
 					data: err ? err : data,
 					type: WAMPResultSchema.id,
 					procedure: request.procedure,
 					signature: request.signature
-				});
+				}));
 			});
 		} else {
 			throw new Error(`Attempt to call unregistered procedure ${request.procedure}`)

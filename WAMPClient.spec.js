@@ -17,8 +17,8 @@ describe('WAMPClient', function () {
 
 	describe('constructor', function () {
 
-		it('should add send function to given parameter', function () {
-			const wampClient = new WAMPClient({});
+		it('create wampClient with callsResolver field', function () {
+			const wampClient = new WAMPClient();
 			expect(wampClient).to.have.property('callsResolvers').to.be.a('object').and.to.be.empty;
 		});
 
