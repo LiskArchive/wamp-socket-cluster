@@ -8,6 +8,7 @@ const WAMPCallSchema = require('./schemas').WAMPCallSchema;
 
 const v = new Validator();
 
+
 class WAMPClient {
 
 	/**
@@ -23,7 +24,7 @@ class WAMPClient {
 	}
 
 	/**
-	 * @param {object} socket
+	 * @param {object} socket - SocketCluster.Socket
 	 * @returns {object} wampSocket
 	 */
 	upgradeToWAMP(socket) {
@@ -38,6 +39,12 @@ class WAMPClient {
 			}
 		});
 
+		/**
+		 * Call procedure registered in WAMPServer
+		 * @param {string} procedure
+		 * @param {*} data
+		 * @returns {Promise}
+		 */
 		socket.wampSend = (procedure, data) => {
 			return new Promise((success, fail) => {
 				if (!this.callsResolvers[procedure]) {

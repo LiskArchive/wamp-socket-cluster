@@ -13,6 +13,10 @@ class WAMPServer {
 		this.registeredEnpoints = {};
 	}
 
+	/**
+	 * @param {object} socket - SocketCluster.Socket
+	 * @returns {object} wampSocket
+	 */
 	upgradeToWAMP(socket) {
 		socket.on('raw', request => {
 			try {
@@ -27,6 +31,11 @@ class WAMPServer {
 		return socket;
 	}
 
+	/**
+	 *
+	 * @param request
+	 * @param socket
+	 */
 	processWAMPRequest(request, socket) {
 		const procedure = this.registeredEnpoints[request.procedure];
 		if (procedure) {
@@ -44,10 +53,19 @@ class WAMPServer {
 		}
 	}
 
+	/**
+	 * @class RPCEndpoint
+	 * @property {function} procedure
+	 *
+	 * @param {RPCEndpoint} endpoint
+	 */
 	addEndpoint(endpoint) {
 		this.registeredEnpoints = Object.assign(this.registeredEnpoints, endpoint);
 	}
 
+	/**
+	 * @param {Array<RPCEndpoint>} endpoints
+	 */
 	reassignEndpoints(endpoints) {
 		this.registeredEnpoints = endpoints;
 	}

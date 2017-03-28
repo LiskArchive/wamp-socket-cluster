@@ -5,7 +5,7 @@ As [SocketCluster](http://socketcluster.io/#!/) is not compatible with [WAMP pro
 - WAMP protocol style function calls (`socket.wampSend(...).then(...)`)
 - addresses the problem of the response order in case of subscription to an event after peer sends many requests one by one.
 ### Usage
-1. `npm install` / `yarn`fssfd
+1. `npm install` / `yarn`
 2. Minimal setup:
 - initialize server side
 ```	
