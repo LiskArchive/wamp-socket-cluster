@@ -4,18 +4,18 @@ Merges RPC ideas of WAMP protocol with good performance of SocketCluster.
 
 As [SocketCluster](http://socketcluster.io/#!/) is not compatible with [WAMP protocol](http://wamp-proto.org/) (as e.g. [AutobahnJS](https://github.com/crossbario/autobahn-js/)) this library provides the wrapper for both SocketClient (WAMPClient) and SocketServer (WAMPServer) and enables RPC web sockets usage.
 
-### Benefits
+## Benefits
 
 - WAMP protocol style function calls (`socket.wampSend(...).then(...)`).
 - Addresses the problem of response order in case of subscribing to an event after peer sends many individual requests.
 
-### Installation
+## Installation
 
 ```
 npm install wamp-socket-cluster
 ```
 
-### Usage
+## Usage
 
 - Initialize server side
 
