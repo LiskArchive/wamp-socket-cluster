@@ -1,6 +1,4 @@
 'use strict';
-const eth = require('ethjs-rpc');
-
 const socketCluster = require('./server').getInstance();
 
 const Client = require('./client');
@@ -12,5 +10,3 @@ setTimeout(function () {
 	c.callRPCInInterval();
 
 }, 1000);
-
-

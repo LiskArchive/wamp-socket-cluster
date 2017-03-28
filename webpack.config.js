@@ -16,10 +16,12 @@ const config = {
 	},
 	output: {
 		path: path.join(__dirname, './dist'),
-		filename: '[name].bundle.js'
+		filename: '[name].bundle.js',
+		library: 'wampSocketCluster',
+		libraryTarget: 'umd',
+		umdNamedDefine: true,
 	}
 };
-
 
 if (process.env.BUNDLE) {
 	config.output.filename = '[name].bundle.min.js';
