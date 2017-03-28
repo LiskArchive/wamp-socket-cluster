@@ -1,6 +1,6 @@
 {
   "name": "wamp-socket-cluster",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "",
   "main": "dist/index.js",
   "scripts": {
@@ -9,8 +9,8 @@
     "build:src": "webpack --optimize-minimize",
     "build:bundle": "BUNDLE=true webpack --optimize-minimize"
   },
-  "author": "Maciej Baj <macie.baj@gmail.com>",
-  "license": "ISC",
+  "author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
+  "license": "GPLv3",
   "dependencies": {
     "jsonschema": "^1.1.1",
     "lodash.get": "^4.4.2"
