@@ -39,18 +39,25 @@ class WAMPServer {
 	processWAMPRequest(request, socket) {
 		const procedure = this.registeredEnpoints[request.procedure];
 		if (procedure) {
-			procedure(request.data, (err, data) => {
-				socket.send(JSON.stringify({
-					success: !err,
-					data: err ? err : data,
-					type: WAMPResultSchema.id,
-					procedure: request.procedure,
-					signature: request.signature
-				}));
-			});
+			procedure(request.data, this.reply.bind(socket));
 		} else {
 			throw new Error(`Attempt to call unregistered procedure ${request.procedure}`)
 		}
+	}
+
+	/**
+	 * @param {object} socket - SocketCluster.Socket
+	 * @param {*} err
+	 * @param {*} data
+	 */
+	reply(socket, err, data) {
+		socket.send(JSON.stringify({
+			success: !err,
+			data: err ? err : data,
+			type: WAMPResultSchema.id,
+			procedure: request.procedure,
+			signature: request.signature
+		}));
 	}
 
 	/**
