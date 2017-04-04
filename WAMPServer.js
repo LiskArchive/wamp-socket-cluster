@@ -33,24 +33,25 @@ class WAMPServer {
 
 	/**
 	 *
-	 * @param request
-	 * @param socket
+	 * @param {WAMPCallSchema} request
+	 * @param {SocketCluster.Socket} socket
 	 */
 	processWAMPRequest(request, socket) {
 		const procedure = this.registeredEnpoints[request.procedure];
 		if (procedure) {
-			procedure(request.data, this.reply.bind(socket));
+			procedure(request.data, this.reply.bind(socket, request));
 		} else {
 			throw new Error(`Attempt to call unregistered procedure ${request.procedure}`)
 		}
 	}
 
 	/**
-	 * @param {object} socket - SocketCluster.Socket
+	 * @param {SocketCluster.Socket} socket
+	 * @param {WAMPCallSchema} request
 	 * @param {*} err
 	 * @param {*} data
 	 */
-	reply(socket, err, data) {
+	reply(socket, request, err, data) {
 		socket.send(JSON.stringify({
 			success: !err,
 			data: err ? err : data,
@@ -76,6 +77,8 @@ class WAMPServer {
 	reassignEndpoints(endpoints) {
 		this.registeredEnpoints = endpoints;
 	}
+
+
 }
 
 module.exports = WAMPServer;
