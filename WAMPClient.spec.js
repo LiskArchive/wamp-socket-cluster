@@ -111,14 +111,7 @@ describe('WAMPClient', function () {
 
 				expect(wampSocket.send.getCalls().length).equal(1);
 				expect(wampSocket.send.getCalls()[0].args.length).equal(1);
-				expect(wampSocket.send.getCalls()[0].args[0]).to.deep.equal({
-					signature: 0,
-					procedure,
-					type: WAMPCallSchema.id,
-					data: {
-						propA: 'valueA'
-					}
-				});
+				expect(wampSocket.send.getCalls()[0].args[0]).to.equal('{"signature":0,"procedure":"procedureA","type":"/WAMPCall","data":{"propA":"valueA"}}');
 			});
 
 

@@ -33,6 +33,7 @@ class WAMPClient {
 				const resolvers = get(this.callsResolvers, `${result.procedure}.${result.signature}`);
 				if (resolvers) {
 					result.success ? resolvers.success(result.data) : resolvers.fail(result.data);
+					delete this.callsResolvers[result.procedure][result.signature];
 				} else {
 					throw new Error(`Unable to find resolving function for procedure ${result.procedure} with signature ${result.signature}`);
 				}
