@@ -1,7 +1,7 @@
 'use strict';
 
 module.exports.WAMPResultSchema = {
-	id: '/WAMPRequest',
+	id: '/WAMPResult',
 	type: 'object',
 	properties: {
 		type: {type: 'string'},

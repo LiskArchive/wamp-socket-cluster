@@ -29,6 +29,7 @@ class WAMPClient {
 	 */
 	upgradeToWAMP(socket) {
 		socket.on('raw', result => {
+
 			if (v.validate(result, WAMPResultSchema).valid && result.type === WAMPResultSchema.id) {
 				const resolvers = get(this.callsResolvers, `${result.procedure}.${result.signature}`);
 				if (resolvers) {

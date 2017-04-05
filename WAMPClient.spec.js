@@ -9,7 +9,6 @@ const v = new Validator();
 
 const WAMPClient = require('./WAMPClient.js');
 const WAMPResultSchema = require('./schemas').WAMPResultSchema;
-const WAMPCallSchema = require('./schemas').WAMPCallSchema;
 
 const expect = chai.expect;
 
