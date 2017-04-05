@@ -12,16 +12,15 @@ module.exports.WAMPResultSchema = {
 	required: ['type', 'procedure', 'success']
 };
 
-module.exports.WAMPResultSchema = {
-	id: '/WAMPRequest',
+module.exports.WAMPCallSchema = {
+	id: '/WAMPCall',
 	type: 'object',
 	properties: {
 		type: {type: 'string'},
 		procedure: {type: 'string'},
-		data: {},
-		success: {type: 'boolean'}
+		data: {}
 	},
-	required: ['type', 'procedure', 'success']
+	required: ['type', 'procedure']
 };
 
 module.exports.ConcurrentWAMPResultSchema = {
