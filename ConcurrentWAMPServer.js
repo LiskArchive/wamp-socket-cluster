@@ -1,7 +1,13 @@
 'use strict';
 
+const Validator = require('jsonschema').Validator;
 const setWith = require('lodash.setwith');
+const get = require('lodash.get');
 const WAMPServer = require('./WAMPServer');
+
+const ConcurrentWAMPResultSchema = require('./schemas').ConcurrentWAMPResultSchema;
+
+const v = new Validator();
 
 class ConcurrentWAMPServer extends WAMPServer {
 
@@ -11,8 +17,7 @@ class ConcurrentWAMPServer extends WAMPServer {
 		this.RPCCalls = {};
 
 		this.worker.on('masterMessage', response => {
-			//ToDo: add schema validation for response
-			if ((response.workerId || response.workerId === 0) && response.socketId) {
+			if (v.validate(response, ConcurrentWAMPResultSchema).valid && response.type === ConcurrentWAMPResultSchema.id) {
 				const socket = sockets[response.socketId];
 				if (this.checkCall(socket, response)) {
 					this.reply(socket, response, response.err, response.data);
@@ -34,7 +39,7 @@ class ConcurrentWAMPServer extends WAMPServer {
 	}
 
 	checkCall(socket, request) {
-		return _.get(this.RPCCalls, socket.id + '.' + request.procedure + '.' + request.signature, false);
+		return get(this.RPCCalls, socket.id + '.' + request.procedure + '.' + request.signature, false);
 	};
 
 	saveCall(socket, request) {
@@ -44,5 +49,6 @@ class ConcurrentWAMPServer extends WAMPServer {
 	deleteCall(socket, request) {
 		return delete this.RPCCalls[socket.id][request.procedure][request.signature];
 	}
-
 }
+
+module.exports = ConcurrentWAMPServer;
