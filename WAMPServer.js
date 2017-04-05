@@ -37,12 +37,10 @@ class WAMPServer {
 	 * @param {SocketCluster.Socket} socket
 	 */
 	processWAMPRequest(request, socket) {
-		const procedure = this.registeredEnpoints[request.procedure];
-		if (procedure) {
-			procedure(request.data, this.reply.bind(socket, request));
-		} else {
-			throw new Error(`Attempt to call unregistered procedure ${request.procedure}`)
+		if (!this.registeredEnpoints[request.procedure] || typeof request.procedure !== 'function') {
+			return this.reply(socket, request, 'procedure not registered on WAMPServer', null);
 		}
+		procedure(request.data, this.reply.bind(socket, request));
 	}
 
 	/**

@@ -6,15 +6,17 @@ const get = require('lodash.get');
 const WAMPServer = require('./WAMPServer');
 
 const ConcurrentWAMPResultSchema = require('./schemas').ConcurrentWAMPResultSchema;
+const WAMPCallSchema = require('./schemas').WAMPCallSchema;
 
 const v = new Validator();
 
 class ConcurrentWAMPServer extends WAMPServer {
 
-	constructor(worker, sockets) {
+	constructor(worker, sockets, rpcMethods) {
 		super();
 		this.worker = worker;
 		this.RPCCalls = {};
+		this.rpcMethods = rpcMethods || [];
 
 		this.worker.on('masterMessage', response => {
 			if (v.validate(response, ConcurrentWAMPResultSchema).valid && response.type === ConcurrentWAMPResultSchema.id) {
@@ -28,10 +30,15 @@ class ConcurrentWAMPServer extends WAMPServer {
 	}
 
 	processWAMPRequest(request, socket) {
-		request.socketId = socket.id;
-		request.workerId = this.worker.id;
-		this.worker.sendToMaster(request);
-		this.saveCall(socket, request);
+		if (v.validate(request, WAMPCallSchema).valid) {
+			if (this.rpcMethods.indexOf(request.procedure) === -1) {
+				return this.reply(socket, request, 'procedure not registered on ConcurrentWAMPServer', null);
+			}
+			request.socketId = socket.id;
+			request.workerId = this.worker.id;
+			this.worker.sendToMaster(request);
+			this.saveCall(socket, request);
+		}
 	}
 
 	onSocketDisconnect(socket) {
