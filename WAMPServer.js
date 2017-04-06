@@ -32,7 +32,6 @@ class WAMPServer {
 	}
 
 	/**
-	 *
 	 * @param {WAMPCallSchema} request
 	 * @param {SocketCluster.Socket} socket
 	 */

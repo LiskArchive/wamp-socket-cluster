@@ -62,7 +62,7 @@ describe('WAMPServer', function () {
 			const wampServer = new WAMPServer();
 			wampServer.upgradeToWAMP(socket);
 			try {
-				wampServer.processWAMPRequest({procedure: 'not-registered-procedure'});
+				wampServer.processWAMPRequest({procedure: 'not-registered-procedure'}, socket);
 			} catch (ex) {
 				expect(ex.toString()).equal(new Error('Attempt to call unregistered procedure not-registered-procedure').toString());
 			}
