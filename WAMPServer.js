@@ -36,10 +36,10 @@ class WAMPServer {
 	 * @param {SocketCluster.Socket} socket
 	 */
 	processWAMPRequest(request, socket) {
-		if (!this.registeredEnpoints[request.procedure] || typeof request.procedure !== 'function') {
+		if (!this.registeredEnpoints[request.procedure] || typeof this.registeredEnpoints[request.procedure] !== 'function') {
 			return this.reply(socket, request, 'procedure not registered on WAMPServer', null);
 		}
-		procedure(request.data, this.reply.bind(socket, request));
+		this.registeredEnpoints[request.procedure](request.data, this.reply.bind(socket, request));
 	}
 
 	/**
