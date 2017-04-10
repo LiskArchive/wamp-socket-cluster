@@ -12,14 +12,13 @@ const v = new Validator();
 
 class ConcurrentWAMPServer extends WAMPServer {
 
-	constructor(worker, sockets, rpcMethods) {
+	constructor(worker, sockets) {
 		super();
 		this.worker = worker;
 		this.RPCCalls = {};
-		this.rpcMethods = rpcMethods || [];
 
 		this.worker.on('masterMessage', response => {
-			if (v.validate(response, ConcurrentWAMPResultSchema).valid && response.type === ConcurrentWAMPResultSchema.id) {
+			if (v.validate(response, ConcurrentWAMPResultSchema).valid) {
 				const socket = sockets[response.socketId];
 				if (this.checkCall(socket, response)) {
 					this.reply(socket, response, response.err, response.data);
@@ -31,7 +30,7 @@ class ConcurrentWAMPServer extends WAMPServer {
 
 	processWAMPRequest(request, socket) {
 		if (v.validate(request, WAMPCallSchema).valid) {
-			if (this.rpcMethods.indexOf(request.procedure) === -1) {
+			if (Object.keys(this.registeredEnpoints).indexOf(request.procedure) === -1) {
 				return this.reply(socket, request, 'procedure not registered on ConcurrentWAMPServer', null);
 			}
 			request.socketId = socket.id;
