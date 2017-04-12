@@ -10,7 +10,10 @@ const v = new Validator();
 class WAMPServer {
 
 	constructor() {
-		this.registeredEnpoints = {};
+		this.endpoints = {
+			rpc: {},
+			event: {}
+		};
 	}
 
 	/**
@@ -36,22 +39,26 @@ class WAMPServer {
 	 * @param {SocketCluster.Socket} socket
 	 */
 	processWAMPRequest(request, socket) {
-		if (!this.registeredEnpoints[request.procedure] || typeof this.registeredEnpoints[request.procedure] !== 'function') {
+		if (this.endpoints.rpc[request.procedure] && typeof this.endpoints.rpc[request.procedure] === 'function') {
+			return this.registeredEnpoints[request.procedure](request.data, this.reply.bind(socket, request));
+		} else if (this.endpoints.event[request.procedure] && typeof this.endpoints.event[request.procedure] === 'function') {
+			return this.registeredEnpoints[request.procedure](request.data);
+		} else {
 			return this.reply(socket, request, 'procedure not registered on WAMPServer', null);
 		}
-		this.registeredEnpoints[request.procedure](request.data, this.reply.bind(socket, request));
 	}
 
 	/**
 	 * @param {SocketCluster.Socket} socket
 	 * @param {WAMPCallSchema} request
-	 * @param {*} err
+	 * @param {*} error
 	 * @param {*} data
 	 */
-	reply(socket, request, err, data) {
+	reply(socket, request, error, data) {
 		socket.send(JSON.stringify({
-			success: !err,
-			data: err ? err : data,
+			success: !error,
+			data: data,
+			error: error,
 			type: WAMPResultSchema.id,
 			procedure: request.procedure,
 			signature: request.signature

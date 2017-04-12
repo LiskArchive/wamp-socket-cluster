@@ -13,6 +13,7 @@
   "license": "GPLv3",
   "dependencies": {
     "jsonschema": "^1.1.1",
+    "lodash.filter": "^4.6.0",
     "lodash.get": "^4.4.2",
     "lodash.setwith": "^4.3.2"
   },

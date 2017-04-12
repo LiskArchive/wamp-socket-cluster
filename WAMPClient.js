@@ -19,8 +19,9 @@ class WAMPClient {
 	}
 
 
-	constructor() {
+	constructor(socket) {
 		this.callsResolvers = {};
+		this.upgradeToWAMP(socket);
 	}
 
 	/**
@@ -33,7 +34,7 @@ class WAMPClient {
 			if (v.validate(result, WAMPResultSchema).valid && result.type === WAMPResultSchema.id) {
 				const resolvers = get(this.callsResolvers, `${result.procedure}.${result.signature}`);
 				if (resolvers) {
-					result.success ? resolvers.success(result.data) : resolvers.fail(result.data);
+					result.success ? resolvers.success(result.data) : resolvers.fail(result.error);
 					delete this.callsResolvers[result.procedure][result.signature];
 				} else {
 					throw new Error(`Unable to find resolving function for procedure ${result.procedure} with signature ${result.signature}`);
