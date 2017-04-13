@@ -9,9 +9,10 @@ describe('WAMPServer', function () {
 
 	describe('constructor', function () {
 
-		it('create wampServer with registeredEnpoints field', function () {
+		it('create wampServer with endpoints field', function () {
 			const wampServer = new WAMPServer();
-			expect(wampServer).to.have.property('registeredEnpoints').to.be.a('object').and.to.be.empty;
+			expect(wampServer).to.have.deep.property('endpoints.rpc').to.be.a('object').and.to.be.empty;
+			expect(wampServer).to.have.deep.property('endpoints.event').to.be.a('object').and.to.be.empty;
 		});
 
 	});
@@ -30,24 +31,65 @@ describe('WAMPServer', function () {
 	});
 
 
-	describe('addEndpoint', function () {
+	describe('registerRPCEndpoints', function () {
 
-		it('should add new endpoint to registeredProcedure', function () {
+		it('should add new endpoint to rpc procedures', function () {
 			const wampServer = new WAMPServer();
-			wampServer.addEndpoint({endpointA: cb => cb()});
-			expect(wampServer.registeredEnpoints).to.have.property('endpointA');
+			wampServer.registerRPCEndpoints({endpointA: cb => cb()});
+			expect(wampServer.endpoints.rpc).to.have.property('endpointA');
+		});
+
+		it('should add new endpoints to rpc procedures', function () {
+			const wampServer = new WAMPServer();
+			wampServer.registerRPCEndpoints({
+				endpointA: cb => cb(),
+				endpointB: cb => cb(),
+			});
+			expect(wampServer.endpoints.rpc).to.have.property('endpointA');
+			expect(wampServer.endpoints.rpc).to.have.property('endpointB');
 		});
 	});
 
-	describe('reassignEndpoints', function () {
+	describe('reassignRPCEndpoints', function () {
 
 		it('should replace old endpoints with the new', function () {
 			const wampServer = new WAMPServer();
-			wampServer.reassignEndpoints({endpointA: cb => cb()});
-			expect(wampServer.registeredEnpoints).to.have.property('endpointA');
-			wampServer.reassignEndpoints({endpointB: cb => cb()});
-			expect(wampServer.registeredEnpoints).not.to.have.property('endpointA');
-			expect(wampServer.registeredEnpoints).to.have.property('endpointB');
+			wampServer.registerRPCEndpoints({endpointA: cb => cb()});
+			expect(wampServer.endpoints.rpc).to.have.property('endpointA');
+			wampServer.reassignRPCEndpoints({endpointB: cb => cb()});
+			expect(wampServer.endpoints.rpc).not.to.have.property('endpointA');
+			expect(wampServer.endpoints.rpc).to.have.property('endpointB');
+		});
+	});
+
+	describe('registerEventEndpoints', function () {
+
+		it('should add new endpoint to event procedures', function () {
+			const wampServer = new WAMPServer();
+			wampServer.registerEventEndpoints({endpointA: cb => cb()});
+			expect(wampServer.endpoints.event).to.have.property('endpointA');
+		});
+
+		it('should add new endpoints to event procedures', function () {
+			const wampServer = new WAMPServer();
+			wampServer.registerEventEndpoints({
+				endpointA: cb => cb(),
+				endpointB: cb => cb(),
+			});
+			expect(wampServer.endpoints.event).to.have.property('endpointA');
+			expect(wampServer.endpoints.event).to.have.property('endpointB');
+		});
+	});
+
+	describe('reassignEventEndpoints', function () {
+
+		it('should replace old endpoints with the new', function () {
+			const wampServer = new WAMPServer();
+			wampServer.registerEventEndpoints({endpointA: cb => cb()});
+			expect(wampServer.endpoints.event).to.have.property('endpointA');
+			wampServer.reassignEventEndpoints({endpointB: cb => cb()});
+			expect(wampServer.endpoints.event).not.to.have.property('endpointA');
+			expect(wampServer.endpoints.event).to.have.property('endpointB');
 		});
 	});
 
@@ -77,7 +119,7 @@ describe('WAMPServer', function () {
 			const endpoint = {procedureA: sinon.spy()};
 			const wampServer = new WAMPServer();
 			wampServer.upgradeToWAMP(socket);
-			wampServer.addEndpoint(endpoint);
+			wampServer.registerRPCEndpoints(endpoint);
 			wampServer.processWAMPRequest({procedure: 'procedureA', data: 'valueA'}, socket);
 			expect(endpoint.procedureA.calledOnce).to.be.ok;
 			expect(endpoint.procedureA.calledWith('valueA')).to.be.ok;

@@ -6,8 +6,9 @@ const get = require('lodash.get');
 const filter = require('lodash.filter');
 const WAMPServer = require('./WAMPServer');
 
-const ConcurrentWAMPResultSchema = require('./schemas').MasterWAMPResultSchema;
-const MasterConfigSchema = require('./schemas').MasterConfigSchema;
+const MasterWAMPResultSchema = require('./schemas').MasterWAMPResultSchema;
+const InterProcessRPCResult = require('./schemas').InterProcessRPCResult;
+const InterProcessRPCRequest = require('./schemas').InterProcessRPCRequest;
 const WAMPCallSchema = require('./schemas').WAMPCallSchema;
 
 const v = new Validator();
@@ -18,98 +19,69 @@ class SlaveWAMPServer extends WAMPServer {
 	 * @param {SocketCluster.Worker} worker
 	 * @param {Function}[empty function] cb
 	 */
-	constructor(worker, cb) {
+	constructor(worker) {
 		super();
 		this.worker = worker;
-		this.RPCCalls = {};
 		this.sockets = worker.scServer.clients;
-		cb = typeof cb === 'function' ? cb : function () {};
+		this.interProcessRPC = {};
 
 		this.worker.on('masterMessage', response => {
-			if (v.validate(response, ConcurrentWAMPResultSchema).valid) {
+			console.log('\x1b[36m%s\x1b[0m', 'SlaveWAMPServer ON masterMessage: workerId', response);
+			if (v.validate(response, MasterWAMPResultSchema).valid && response.type === MasterWAMPResultSchema.id) {
+				console.log('\x1b[36m%s\x1b[0m', 'SlaveWAMPServer ON passed MasterWAMPResultSchema verification. resp to socket: ', this.sockets[response.socketId]);
 				const socket = this.sockets[response.socketId];
-				if (this.checkCall(socket, response)) {
-					this.reply(socket, response, response.err, response.data);
-					this.deleteCall(socket, response);
+				if (socket) {
+					this.processWAMPRequest(response, socket);
+				}
+				//ToDo: else it is really bad then
+
+			}
+			else if (v.validate(response, InterProcessRPCResult).valid && response.type === InterProcessRPCResult.id) {
+				console.log('\x1b[36m%s\x1b[0m', 'SlaveWAMPServer ON passed MasterWAMPResultSchema verification. resp to call: ', this.getCall(response));
+				const callback = this.getCall(response);
+				if (callback) {
+					callback(response.err, response.data);
+					this.deleteCall(response);
 				}
 			}
-			else if (v.validate(response, MasterConfigSchema).valid) {
-				this.applyMasterConfig(response.data);
-				return cb(null, response.data);
-			} else {
-				return cb(v.validate(response, MasterConfigSchema).errors);
-			}
 		});
 	}
 
-	applyMasterConfig(config) {
-		this.config = config;
-		this.reassignEndpoints(config.endpoints.rpc.reduce(function (memo, endpoint) {
-			memo[endpoint] = true;
-			return memo;
-		}, {}));
-		console.log('\x1b[36m%s\x1b[0m', 'WORKERS masterMessage WILL Setup the sockets: ', scServer.clients);
+	sendToMaster(procedure, data, socketId, cb) {
+		console.log('\x1b[36m%s\x1b[0m', 'SlaveWAMPServer sendToMaster: workerId', this.worker);
 
-		filter(this.sockets, function (socket) {
-			return !socket.settedUp;
-		}).forEach(function (notSetSocket) {
-			this.setupSocket(notSetSocket);
+		this.worker.sendToMaster({
+			type: InterProcessRPCRequest.id,
+			procedure,
+			data,
+			socketId,
+			workerId: this.worker.id
 		});
-	}
-
-	setupSocket(socket) {
-		//ToDo: possible problems with registering multiple listeners on same events
-		this.config.endpoints.event.forEach(function (endpoint) {
-			console.log('\x1b[36m%s\x1b[0m', 'WORKERS CONNECTION ----- REGISTER EVENT ENDPOINT', endpoint);
-			socket.on(endpoint, function (data) {
-				console.log('\x1b[36m%s\x1b[0m', 'WORKERS CTRL ----- RECEIVED EVENT CALL FOR', endpoint);
-				this.worker.sendToMaster({
-					procedure: endpoint,
-					data: data
-				});
-			});
-		});
-
-		socket.settedUp = true;
-		this.upgradeToWAMP(socket);
-	}
-
-	reassigndRPCListeners() {
-		this.sockets.forEach(function (notSetSocket) {
-			this.setupSocket(notSetSocket, worker);
-		});
-	}
-
-	sendToMaster(procedure, data) {
-		this.worker.sendToMaster();
+		this.saveCall(socketId, cb);
 	}
 
 	processWAMPRequest(request, socket) {
 		if (v.validate(request, WAMPCallSchema).valid) {
-			if (Object.keys(this.registeredEnpoints).indexOf(request.procedure) === -1) {
-				return this.reply(socket, request, 'procedure not registered on ConcurrentWAMPServer', null);
-			}
 			request.socketId = socket.id;
 			request.workerId = this.worker.id;
 			this.worker.sendToMaster(request);
-			this.saveCall(socket, request);
 		}
 	}
 
-	onSocketDisconnect(socket) {
-		return delete this.RPCCalls[socket.id];
+	onSocketDisconnect(socketId) {
+		return delete this.interProcessRPC[socketId];
 	}
 
-	checkCall(socket, request) {
-		return get(this.RPCCalls, socket.id + '.' + request.procedure + '.' + request.signature, false);
+	getCall(request) {
+		return get(this.interProcessRPC, request.socketId + '.' + request.procedure + '.' + request.signature, false);
 	};
 
-	saveCall(socket, request) {
-		return setWith(this.RPCCalls, socket.id + '.' + request.procedure + '.' + request.signature, true, Object);
+	saveCall(request, cb) {
+		return setWith(this.interProcessRPC, request.socketId + '.' + request.procedure + '.' + request.signature, cb, Object);
 	};
 
-	deleteCall(socket, request) {
-		return delete this.RPCCalls[socket.id][request.procedure][request.signature];
+	deleteCall(request) {
+		return delete this.interProcessRPC[request.socketId][request.procedure][request.signature];
 	}
 }
 

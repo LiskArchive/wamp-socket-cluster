@@ -14,6 +14,13 @@ const expect = chai.expect;
 
 describe('WAMPClient', function () {
 
+	let fakeSocket;
+
+	beforeEach(function () {
+		fakeSocket = {
+			on: sinon.spy()
+		};
+	});
 	describe('constructor', function () {
 
 		it('create wampClient with callsResolver field', function () {
@@ -26,7 +33,7 @@ describe('WAMPClient', function () {
 	describe('upgradeToWAMP', function () {
 
 		it('should add send function to given parameter', function () {
-			const wampSocket = new WAMPClient().upgradeToWAMP({on: () => {}});
+			const wampSocket = new WAMPClient().upgradeToWAMP(fakeSocket);
 			expect(wampSocket).to.have.property('wampSend').to.be.a('function')
 		});
 
@@ -43,7 +50,7 @@ describe('WAMPClient', function () {
 			};
 
 			beforeEach(function () {
-				wampClient = new WAMPClient();
+				wampClient = new WAMPClient(fakeSocket);
 				wampSocket = {
 					send: sinon.spy(),
 					on: sinon.spy()
@@ -140,6 +147,7 @@ describe('WAMPClient', function () {
 					type: WAMPResultSchema.id,
 					signature: 0,
 					success: true,
+					error: null,
 					data: {
 						propA: 'valueA'
 					}
@@ -159,14 +167,15 @@ describe('WAMPClient', function () {
 
 			});
 
-			it('should reject with passed data when server responds with unvalid WAMPResult', function (done) {
+			it('should reject with passed data when server responds with invalid WAMPResult', function (done) {
 
 				const procedure = 'procedureA';
-				const unvalidWampServerResponse = {
+				const invalidWampServerResponse = {
 					procedure,
 					type: WAMPResultSchema.id,
 					signature: 0,
 					success: false,
+					error: 'err desc',
 					data: {
 						propA: 'valueA'
 					}
@@ -175,12 +184,12 @@ describe('WAMPClient', function () {
 				wampSocket.wampSend(procedure).then(data => {
 					expect(data).to.be.empty;
 				}).catch(err => {
-					expect(err).equal(unvalidWampServerResponse.data);
+					expect(err).equal(invalidWampServerResponse.error);
 					done();
 				});
 
 				const mockedServerResponse = wampSocket.on.getCalls()[0].args[1];
-				mockedServerResponse(unvalidWampServerResponse);
+				mockedServerResponse(invalidWampServerResponse);
 			});
 
 
@@ -191,6 +200,7 @@ describe('WAMPClient', function () {
 					procedure,
 					type: WAMPResultSchema.id,
 					success: false,
+					error: 'err desc',
 					data: {
 						propA: 'valueA'
 					}
@@ -215,6 +225,7 @@ describe('WAMPClient', function () {
 					type: WAMPResultSchema.id,
 					signature: 'wrong',
 					success: false,
+					error: 'err desc',
 					data: {
 						propA: 'valueA'
 					}

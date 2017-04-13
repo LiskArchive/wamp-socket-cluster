@@ -2,10 +2,10 @@
 
 const chai = require('chai');
 const sinon = require('sinon');
-const ConcurrentWAMPServer = require('./SlaveWAMPServer');
+const SlaveWAMPServer = require('./SlaveWAMPServer');
 const expect = chai.expect;
 
-describe('MasterWAMPServer', function () {
+describe('SlaveWAMPServer', function () {
 
 	describe('constructor', function () {
 		let fakeWorker;
@@ -15,23 +15,33 @@ describe('MasterWAMPServer', function () {
 				id: 0,
 				on: sinon.spy(),
 				scServer: {
-					clients: []
+					clients: {}
 				}
 			};
 		});
 
-		it('create concurrentWAMPServer with worker field', function () {
-			const concurrentWAMPServer = new ConcurrentWAMPServer(fakeWorker);
-			expect(concurrentWAMPServer).to.have.property('worker').to.be.a('object').and.to.have.property('id').equal(0);
+		it('create SlaveWAMPServer with worker field', function () {
+			const slaveWAMPServer = new SlaveWAMPServer(fakeWorker);
+			expect(slaveWAMPServer).to.have.property('worker').to.be.a('object').and.to.have.property('id').equal(0);
 		});
 
-		it('create concurrentWAMPServer with RPCCalls field', function () {
-			const concurrentWAMPServer = new ConcurrentWAMPServer(fakeWorker);
-			expect(concurrentWAMPServer).to.have.property('RPCCalls').to.be.a('object').and.to.be.empty;
+		it('create SlaveWAMPServer with RPCCalls field', function () {
+			const slaveWAMPServer = new SlaveWAMPServer(fakeWorker);
+			expect(slaveWAMPServer).to.have.property('interProcessRPC').to.be.a('object').and.to.be.empty;
 		});
 
-		it('create concurrentWAMPServer and register event listener from master process', function () {
-			new ConcurrentWAMPServer(fakeWorker);
+		it('create SlaveWAMPServer with sockets field', function () {
+			const slaveWAMPServer = new SlaveWAMPServer(fakeWorker);
+			expect(slaveWAMPServer).to.have.property('sockets').to.be.a('object').and.to.be.empty;
+		});
+
+		it('create SlaveWAMPServer with sockets field', function () {
+			const slaveWAMPServer = new SlaveWAMPServer(fakeWorker);
+			expect(slaveWAMPServer).to.have.property('sockets').to.be.a('object').and.to.be.empty;
+		});
+
+		it('create SlaveWAMPServer and register event listener from master process', function () {
+			new SlaveWAMPServer(fakeWorker);
 			expect(fakeWorker.on.calledOnce).to.be.ok;
 			expect(fakeWorker.on.calledWith('masterMessage')).to.be.ok;
 		});

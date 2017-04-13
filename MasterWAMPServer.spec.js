@@ -1,130 +1,100 @@
 'use strict';
 
-const Validator = require('jsonschema').Validator;
-const setWith = require('lodash.setwith');
-const get = require('lodash.get');
-const WAMPServer = require('./WAMPServer');
+const chai = require('chai');
+const sinon = require('sinon');
+const MasterWAMPServer = require('./MasterWAMPServer');
+const MasterWAMPCallSchema = require('./schemas').MasterWAMPCallSchema;
+const MasterWAMPResultSchema = require('./schemas').MasterWAMPResultSchema;
+const expect = chai.expect;
 
-const ConcurrentWAMPResultSchema = require('./schemas').MasterWAMPResultSchema;
-const MasterConfigSchema = require('./schemas').MasterConfigSchema;
-const WAMPCallSchema = require('./schemas').WAMPCallSchema;
+describe('MasterWAMPServer', function () {
 
-const v = new Validator();
+	describe('constructor', function () {
+		let fakeSCServer;
 
-class MasterWAMPServer extends WAMPServer {
+		beforeEach(function () {
+			fakeSCServer = {
+				on: sinon.spy(),
+				sendToWorker: sinon.spy()
+			};
+		});
 
-	/**
-	 * @param {SocketCluster.SocketCluster} worker
-	 * @param {Function}[empty function] cb
-	 */
-	constructor(socketCluster) {
-		socketCluster.on('workerStart', function (worker) {
-			console.log('\x1b[36m%s\x1b[0m', 'MASTER CTRL: workerStart ----- workerID:', worker.id, {
-				endpoints: {
-					rpc: Object.keys(endpoints.rpcEndpoints),
-					event: Object.keys(endpoints.eventEndpoints)
-				}
+		it('create SlaveWAMPServer with socketCluster field', function () {
+			const masterWAMPServer = new MasterWAMPServer(fakeSCServer);
+			expect(masterWAMPServer).to.have.property('socketCluster').to.be.a('object');
+		});
+
+
+		it('should start listening on "workerMessage"', function () {
+			new MasterWAMPServer(fakeSCServer);
+			expect(fakeSCServer.on.calledOnce).to.be.ok;
+			expect(fakeSCServer.on.calledWith('workerMessage')).to.be.ok;
+			expect(fakeSCServer.on.getCalls()[0].args[1]).to.be.a('function');
+		});
+
+		describe('socketCluster.on("workerMessage")', function () {
+
+			let masterWAMPServer;
+
+			const validMasterWAMPCall = {
+				workerId: 0,
+				socketId: 'AYX',
+				type: MasterWAMPCallSchema.id,
+				procedure: 'methodA',
+				data: {},
+			};
+
+			const v2 = {
+				type: '/InterProcessRPCRequest',
+				procedure: 'updatePeer',
+				data:
+					{ peer:
+						{ ip: '127.0.0.1',
+							port: 8000,
+							state: 1,
+							string: '127.0.0.1:8000',
+							version: '0.0.0a' },
+						extraMessage: 'extraMessage' },
+				socketId: '127.0.0.1:8000',
+				workerId: 0
+			};
+
+
+			beforeEach(function () {
+				fakeSCServer = {
+					on: sinon.spy(),
+					sendToWorker: sinon.spy()
+				};
+				masterWAMPServer = new MasterWAMPServer(fakeSCServer);
+				masterWAMPServer.processWAMPRequest = sinon.spy();
 			});
 
-			socketCluster.sendToWorker(worker.id, {
-				endpoints: {
-					rpc: Object.keys(endpoints.rpcEndpoints),
-					event: Object.keys(endpoints.eventEndpoints)
-				}
+			it('should call processWAMPRequest when proper MasterWAMPCallSchema param passed to "workerMessage" handler', function () {
+				const onWorkerMessageHandler = fakeSCServer.on.getCalls()[0].args[1];
+				onWorkerMessageHandler(0, v2);
+				expect(masterWAMPServer.processWAMPRequest.calledOnce).to.be.ok;
+			});
+
+			it('should call processWAMPRequest when proper MasterWAMPCallSchema with received request', function () {
+				const onWorkerMessageHandler = fakeSCServer.on.getCalls()[0].args[1];
+				onWorkerMessageHandler(0, validMasterWAMPCall);
+				expect(masterWAMPServer.processWAMPRequest.calledWith(validMasterWAMPCall)).to.be.ok;
+			});
+
+			it('should not call processWAMPRequest when invalid MasterWAMPCallSchema passed', function () {
+				const onWorkerMessageHandler = fakeSCServer.on.getCalls()[0].args[1];
+				const invalidMasterWAMPCall = Object.assign({}, validMasterWAMPCall, {type: 'invalid'});
+				onWorkerMessageHandler(0, invalidMasterWAMPCall);
+				expect(masterWAMPServer.processWAMPRequest.called).not.to.be.ok;
+			});
+
+			it('should not call processWAMPRequest when empty request passed', function () {
+				const onWorkerMessageHandler = fakeSCServer.on.getCalls()[0].args[1];
+				onWorkerMessageHandler(0, null);
+				expect(masterWAMPServer.processWAMPRequest.called).not.to.be.ok;
 			});
 		});
 
-		socketCluster.on('workerMessage', function (worker, request) {
-			console.log('\x1b[36m%s\x1b[0m', 'MASTER CTRL: ON workerMessage ----- request:', request);
-			//ToDo: different validation for WAMP and EVENT
-			if (request.procedure) {
-				if (endpoints.rpcEndpoints[request.procedure]) {
-					console.log('\x1b[36m%s\x1b[0m', 'MASTER CTRL: ON workerMessage ----- invoking RPC procedure:', endpoints.rpcEndpoints[request.procedure]);
-					endpoints.rpcEndpoints[request.procedure](request.data, function (err, response) {
-						console.log('\x1b[36m%s\x1b[0m', 'MASTER CTRL: ON workerMessage ----- invoking RPC callback ---- response', response, 'err', err);
-						response = _.extend(request, {data: response, err: err, success: !err});
-						socketCluster.sendToWorker(response.workerId, response);
-					});
-				} else if (endpoints.eventEndpoints[request.procedure]) {
-					console.log('\x1b[36m%s\x1b[0m', 'MASTER CTRL: ON workerMessage ----- invoking EVENT procedure:', endpoints.eventEndpoints[request.procedure]);
-					endpoints.eventEndpoints[request.procedure](request.data, function (err, message) {
-						//ToDo: typical error message handler
+	});
 
-					});
-				}
-			}
-		});
-	}
-
-	applyMasterConfig(config) {
-		this.config = config;
-		this.reassignEndpoints(config.endpoints.rpc.reduce(function (memo, endpoint) {
-			memo[endpoint] = true;
-			return memo;
-		}, {}));
-		console.log('\x1b[36m%s\x1b[0m', 'WORKERS masterMessage WILL Setup the sockets: ', scServer.clients);
-
-		_.filter(this.sockets, function (socket) {
-			return !socket.settedUp;
-		}).forEach(function (notSetSocket) {
-			this.setupSocket(notSetSocket);
-		});
-	}
-
-	setupSocket(socket) {
-		//ToDo: possible problems with registering multiple listeners on same events
-		this.config.endpoints.event.forEach(function (endpoint) {
-			console.log('\x1b[36m%s\x1b[0m', 'WORKERS CONNECTION ----- REGISTER EVENT ENDPOINT', endpoint);
-			socket.on(endpoint, function (data) {
-				console.log('\x1b[36m%s\x1b[0m', 'WORKERS CTRL ----- RECEIVED EVENT CALL FOR', endpoint);
-				this.worker.sendToMaster({
-					procedure: endpoint,
-					data: data
-				});
-			});
-		});
-
-		socket.settedUp = true;
-		this.upgradeToWAMP(socket);
-	}
-
-	reassigndRPCListeners() {
-		this.sockets.forEach(function (notSetSocket) {
-			this.setupSocket(notSetSocket, worker);
-		});
-	}
-
-	sendToMaster(procedure, data) {
-		this.worker.sendToMaster();
-	}
-
-	processWAMPRequest(request, socket) {
-		if (v.validate(request, WAMPCallSchema).valid) {
-			if (Object.keys(this.registeredEnpoints).indexOf(request.procedure) === -1) {
-				return this.reply(socket, request, 'procedure not registered on ConcurrentWAMPServer', null);
-			}
-			request.socketId = socket.id;
-			request.workerId = this.worker.id;
-			this.worker.sendToMaster(request);
-			this.saveCall(socket, request);
-		}
-	}
-
-	onSocketDisconnect(socket) {
-		return delete this.RPCCalls[socket.id];
-	}
-
-	checkCall(socket, request) {
-		return get(this.RPCCalls, socket.id + '.' + request.procedure + '.' + request.signature, false);
-	};
-
-	saveCall(socket, request) {
-		return setWith(this.RPCCalls, socket.id + '.' + request.procedure + '.' + request.signature, true, Object);
-	};
-
-	deleteCall(socket, request) {
-		return delete this.RPCCalls[socket.id][request.procedure][request.signature];
-	}
-}
-
-module.exports = MasterWAMPServer;
+});

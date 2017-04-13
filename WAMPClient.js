@@ -19,9 +19,8 @@ class WAMPClient {
 	}
 
 
-	constructor(socket) {
+	constructor() {
 		this.callsResolvers = {};
-		this.upgradeToWAMP(socket);
 	}
 
 	/**

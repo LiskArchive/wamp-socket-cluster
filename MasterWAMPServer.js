@@ -5,9 +5,9 @@ const setWith = require('lodash.setwith');
 const get = require('lodash.get');
 const WAMPServer = require('./WAMPServer');
 
-const ConcurrentWAMPResultSchema = require('./schemas').MasterWAMPResultSchema;
-const MasterConfigSchema = require('./schemas').MasterConfigSchema;
-const WAMPCallSchema = require('./schemas').WAMPCallSchema;
+const MasterWAMPResultSchema = require('./schemas').MasterWAMPResultSchema;
+const MasterWAMPCallSchema = require('./schemas').MasterWAMPCallSchema;
+const InterProcessRPCResult = require('./schemas').InterProcessRPCResult;
 
 const v = new Validator();
 
@@ -17,28 +17,20 @@ class MasterWAMPServer extends WAMPServer {
 	 * @param {SocketCluster.SocketCluster} worker
 	 * @param {Function}[empty function] cb
 	 */
-	constructor(socketCluster) {
+	constructor(socketCluster, config) {
 		
 		super();
 		this.socketCluster = socketCluster;
 
-		socketCluster.on('workerStart', worker => {
-			console.log('\x1b[36m%s\x1b[0m', 'MASTER CTRL: workerStart ----- workerID:', worker.id, {
-				endpoints: {
-					rpc: Object.keys(this.endpoints.rpc),
-					event: Object.keys(this.endpoints.event)
-				}
-			});
-
-			socketCluster.sendToWorker(worker.id, {
-				endpoints: {
-					rpc: Object.keys(this.endpoints.rpc),
-					event: Object.keys(this.endpoints.event)
-				}
-			});
-		});
+		// socketCluster.on('workerStart', worker => {
+		// 	this.reply(null, {
+		// 		type:
+		// 	}, null, {config});
+		// });
 
 		socketCluster.on('workerMessage', (worker, request) => {
+			console.log('\x1b[33m%s\x1b[0m', 'MasterWAMPServer: on workerMessage ', request);
+
 			// console.log('\x1b[36m%s\x1b[0m', 'MASTER CTRL: ON workerMessage ----- request:', request);
 			// //ToDo: different validation for WAMP and EVENT
 			// if (request.procedure) {
@@ -57,8 +49,8 @@ class MasterWAMPServer extends WAMPServer {
 			// 		});
 			// 	}
 			// }
-			if (v.validate(request, ConcurrentWAMPResultSchema).valid) {
-				console.log('\x1b[36m%s\x1b[0m', 'MASTER CTRL: ON workerMessage ----- invoking RPC procedure:', this.endpoints.rpc[request.procedure]);
+			if (v.validate(request, MasterWAMPCallSchema).valid) {
+				console.log('\x1b[33m%s\x1b[0m', 'MasterWAMPServer: ON workerMessage ----- passed validation invoking RPC procedure:', this.endpoints.rpc[request.procedure]);
 				this.processWAMPRequest(request, null);
 			}
 		});
@@ -72,22 +64,13 @@ class MasterWAMPServer extends WAMPServer {
 	 * @param {*} data
 	 */
 	reply(socket, request, error, data) {
+		console.log('\x1b[36m%s\x1b[0m', 'MasterWAMPServer ----- reply type', request.workerId, request.type === MasterWAMPResultSchema.id ? MasterWAMPResultSchema.id : InterProcessRPCResult.id);
 		return this.socketCluster.sendToWorker(request.workerId, {
 			data,
 			error,
 			success: !error,
-			type: MasterWAMPServer.id,
+			type: request.type === MasterWAMPResultSchema.id ? MasterWAMPResultSchema.id : InterProcessRPCResult.id,
 		});
-	}
-
-	registerRPCEndpoints(endpoints) {
-		console.log('\x1b[36m%s\x1b[0m', 'ENDPOINTS: registerRPCEndpoints', endpoints);
-		this.endpoints.rpc = Object.assign(this.endpoints.rpc, endpoints);
-	}
-
-	registerEventEndpoints(endpoints) {
-		console.log('\x1b[36m%s\x1b[0m', 'ENDPOINTS: registerEVENTEndpoints', endpoints);
-		this.endpoints.event = Object.assign(this.endpoints.event, endpoints);
 	}
 
 }
