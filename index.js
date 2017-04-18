@@ -1,9 +1,11 @@
-const ConcurrentWAMPServer = require('./ConcurrentWAMPServer');
+const SlaveWAMPServer = require('./SlaveWAMPServer');
+const MasterWAMPServer = require('./MasterWAMPServer');
 const WAMPServer = require('./WAMPServer');
 const WAMPClient = require('./WAMPClient');
 
 module.exports = {
-	ConcurrentWAMPServer,
+	SlaveWAMPServer,
+	MasterWAMPServer,
 	WAMPClient,
-	WAMPServer,
+	WAMPServer
 };

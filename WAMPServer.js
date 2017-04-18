@@ -2,8 +2,7 @@
 
 const Validator = require('jsonschema').Validator;
 
-const WAMPResultSchema = require('./schemas').WAMPResultSchema;
-const WAMPCallSchema = require('./schemas').WAMPCallSchema;
+const schemas = require('./schemas');
 
 const v = new Validator();
 
@@ -21,6 +20,8 @@ class WAMPServer {
 	 * @returns {object} wampSocket
 	 */
 	upgradeToWAMP(socket) {
+		console.log('\x1b[36m%s\x1b[0m', 'WAMPServer ----- upgradeToWAMP', this.endpoints);
+
 		//register RPC endpoints
 		socket.on('raw', request => {
 			console.log('\x1b[36m%s\x1b[0m', 'WAMPServer ----- RECEIVED RPC CALL', request.procedure);
@@ -29,21 +30,30 @@ class WAMPServer {
 			} catch (ex) {
 				return;
 			}
-			if (v.validate(request, WAMPCallSchema).valid && request.type === WAMPCallSchema.id) {
+			if (v.validate(request, schemas.WAMPRequestSchema).valid && request.type === schemas.WAMPRequestSchema.id) {
 				this.processWAMPRequest(request, socket);
+			} else {
+				console.log('\x1b[36m%s\x1b[0m', 'WAMPServer processWAMPRequest WAMPRequestSchema.errors', v.validate(request, schemas.WAMPRequestSchema).errors);
 			}
 		});
 
 		//register Event endpoints
-		for (const [procedure, handler] of Object.entries(this.endpoints.event)) {
-			socket.on(procedure, handler);
-		}
+		Object.keys(this.endpoints.event).forEach(event => {
+			socket.on(event, data => {
+				console.log('\x1b[36m%s\x1b[0m', 'WAMPServer ----- RECEIVED EVENT CALL', event, data);
+				this.processWAMPRequest({
+					type: schemas.WAMPRequestSchema.id,
+					procedure: event,
+					data
+				}, socket);
+			});
+		});
 
 		return socket;
 	}
 
 	/**
-	 * @param {WAMPCallSchema} request
+	 * @param {WAMPRequestSchema} request
 	 * @param {SocketCluster.Socket} socket
 	 */
 	processWAMPRequest(request, socket) {
@@ -63,7 +73,7 @@ class WAMPServer {
 
 	/**
 	 * @param {SocketCluster.Socket} socket
-	 * @param {WAMPCallSchema} request
+	 * @param {WAMPRequestSchema} request
 	 * @param {*} error
 	 * @param {*} data
 	 */
@@ -72,7 +82,7 @@ class WAMPServer {
 			success: !error,
 			data: data,
 			error: error,
-			type: WAMPResultSchema.id,
+			type: schemas.WAMPResponseSchema.id,
 			procedure: request.procedure,
 			signature: request.signature
 		}));

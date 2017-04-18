@@ -8,7 +8,7 @@ const Validator = require('jsonschema').Validator;
 const v = new Validator();
 
 const WAMPClient = require('./WAMPClient.js');
-const WAMPResultSchema = require('./schemas').WAMPResultSchema;
+const WAMPResponseSchema = require('./schemas').WAMPResponseSchema;
 
 const expect = chai.expect;
 
@@ -144,7 +144,7 @@ describe('WAMPClient', function () {
 				const procedure = 'procedureA';
 				const sampleWampServerResponse = {
 					procedure,
-					type: WAMPResultSchema.id,
+					type: WAMPResponseSchema.id,
 					signature: 0,
 					success: true,
 					error: null,
@@ -153,7 +153,7 @@ describe('WAMPClient', function () {
 					}
 				};
 
-				expect(v.validate(sampleWampServerResponse, WAMPResultSchema).valid).to.be.ok;
+				expect(v.validate(sampleWampServerResponse, WAMPResponseSchema).valid).to.be.ok;
 
 				wampSocket.wampSend(procedure).then(data => {
 					expect(data).equal(sampleWampServerResponse.data);
@@ -172,7 +172,7 @@ describe('WAMPClient', function () {
 				const procedure = 'procedureA';
 				const invalidWampServerResponse = {
 					procedure,
-					type: WAMPResultSchema.id,
+					type: WAMPResponseSchema.id,
 					signature: 0,
 					success: false,
 					error: 'err desc',
@@ -198,7 +198,7 @@ describe('WAMPClient', function () {
 				const procedure = 'procedureA';
 				const sampleWampServerResponse = Object.assign(someArgument, {
 					procedure,
-					type: WAMPResultSchema.id,
+					type: WAMPResponseSchema.id,
 					success: false,
 					error: 'err desc',
 					data: {
@@ -222,7 +222,7 @@ describe('WAMPClient', function () {
 				const procedure = 'procedureA';
 				const sampleWampServerResponse = Object.assign(someArgument, {
 					procedure,
-					type: WAMPResultSchema.id,
+					type: WAMPResponseSchema.id,
 					signature: 'wrong',
 					success: false,
 					error: 'err desc',

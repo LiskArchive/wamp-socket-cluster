@@ -29,8 +29,16 @@ Client.prototype.connect = function () {
 		throw 'Socket error - ' + err;
 	});
 
-	this.socket.on('connect', function () {
-		console.log('CONNECTED');
+	this.socket.on('connect', function (data) {
+		console.log('CLIENT CONNECTED AFTER HANDSHAKE', data);
+	});
+
+	this.socket.on('connecting', function () {
+		console.log('CLIENT STARTED HANDSHAKE');
+	});
+
+	this.socket.on('connectAbort', function (data) {
+		console.log('CLIENT HANDSHAKE REJECTED', data);
 	});
 
 	return this.socket;
@@ -38,12 +46,11 @@ Client.prototype.connect = function () {
 };
 
 Client.prototype.callRPCInInterval = function () {
-
 	const interval = setInterval(() => {
 		const randNumber =  Math.floor( Math.random() * 5 );
 		this.socket.wampSend('dupaRpc', randNumber)
-			.then(result => console.log(`RPC result: ${randNumber} * 2 = ${result}`))
-			.catch(err => console.error('RPC multiply by two error', err));
+			.then(result => console.log('\x1b[34m%s\x1b[0m', `RPC result: ${randNumber} * 2 = ${result}`))
+			.catch(err => console.error('\x1b[35m%s\x1b[0m', 'RPC multiply by two error', err));
 
 		setTimeout(function () {
 			this.socket.emit('dupaEmit', randNumber);

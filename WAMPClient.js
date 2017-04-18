@@ -3,8 +3,8 @@
 const get = require('lodash.get');
 const Validator = require('jsonschema').Validator;
 
-const WAMPResultSchema = require('./schemas').WAMPResultSchema;
-const WAMPCallSchema = require('./schemas').WAMPCallSchema;
+const WAMPResponseSchema = require('./schemas').WAMPResponseSchema;
+const WAMPRequestSchema = require('./schemas').WAMPRequestSchema;
 
 const v = new Validator();
 
@@ -29,8 +29,8 @@ class WAMPClient {
 	 */
 	upgradeToWAMP(socket) {
 		socket.on('raw', result => {
-
-			if (v.validate(result, WAMPResultSchema).valid && result.type === WAMPResultSchema.id) {
+			console.log('\x1b[36m%s\x1b[0m', 'WAMPClient ON RAW MSG', result);
+			if (v.validate(result, WAMPResponseSchema).valid && result.type === WAMPResponseSchema.id) {
 				const resolvers = get(this.callsResolvers, `${result.procedure}.${result.signature}`);
 				if (resolvers) {
 					result.success ? resolvers.success(result.data) : resolvers.fail(result.error);
@@ -57,7 +57,7 @@ class WAMPClient {
 				}
 				const signature = (Object.keys(this.callsResolvers[procedure]).length - 1) + 1;
 				this.callsResolvers[procedure][signature] = {success, fail};
-				socket.send(JSON.stringify({signature, procedure, type: WAMPCallSchema.id, data}));
+				socket.send(JSON.stringify({signature, procedure, type: WAMPRequestSchema.id, data}));
 			});
 		};
 		return socket;

@@ -3,7 +3,8 @@ const webpack = require('webpack');
 
 const config = {
 	entry: {
-		'ConcurrentWAMPServer': './ConcurrentWAMPServer.js',
+		'MasterWAMPServer': './MasterWAMPServer.js',
+		'SlaveWAMPServer': './SlaveWAMPServer.js',
 		'WAMPClient': './WAMPClient.js',
 		'WAMPServer': './WAMPServer.js'
 	},

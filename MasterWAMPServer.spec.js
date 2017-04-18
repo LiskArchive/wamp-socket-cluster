@@ -3,8 +3,8 @@
 const chai = require('chai');
 const sinon = require('sinon');
 const MasterWAMPServer = require('./MasterWAMPServer');
-const MasterWAMPCallSchema = require('./schemas').MasterWAMPCallSchema;
-const MasterWAMPResultSchema = require('./schemas').MasterWAMPResultSchema;
+const MasterWAMPRequestSchema = require('./schemas').MasterWAMPRequestSchema;
+const MasterWAMPResponseSchema = require('./schemas').MasterWAMPResponseSchema;
 const expect = chai.expect;
 
 describe('MasterWAMPServer', function () {
@@ -39,13 +39,13 @@ describe('MasterWAMPServer', function () {
 			const validMasterWAMPCall = {
 				workerId: 0,
 				socketId: 'AYX',
-				type: MasterWAMPCallSchema.id,
+				type: MasterWAMPRequestSchema.id,
 				procedure: 'methodA',
 				data: {},
 			};
 
 			const v2 = {
-				type: '/InterProcessRPCRequest',
+				type: '/InterProcessRPCRequestSchemaSchema',
 				procedure: 'updatePeer',
 				data:
 					{ peer:
@@ -69,19 +69,19 @@ describe('MasterWAMPServer', function () {
 				masterWAMPServer.processWAMPRequest = sinon.spy();
 			});
 
-			it('should call processWAMPRequest when proper MasterWAMPCallSchema param passed to "workerMessage" handler', function () {
+			it('should call processWAMPRequest when proper MasterWAMPRequestSchema param passed to "workerMessage" handler', function () {
 				const onWorkerMessageHandler = fakeSCServer.on.getCalls()[0].args[1];
 				onWorkerMessageHandler(0, v2);
 				expect(masterWAMPServer.processWAMPRequest.calledOnce).to.be.ok;
 			});
 
-			it('should call processWAMPRequest when proper MasterWAMPCallSchema with received request', function () {
+			it('should call processWAMPRequest when proper MasterWAMPRequestSchema with received request', function () {
 				const onWorkerMessageHandler = fakeSCServer.on.getCalls()[0].args[1];
 				onWorkerMessageHandler(0, validMasterWAMPCall);
 				expect(masterWAMPServer.processWAMPRequest.calledWith(validMasterWAMPCall)).to.be.ok;
 			});
 
-			it('should not call processWAMPRequest when invalid MasterWAMPCallSchema passed', function () {
+			it('should not call processWAMPRequest when invalid MasterWAMPRequestSchema passed', function () {
 				const onWorkerMessageHandler = fakeSCServer.on.getCalls()[0].args[1];
 				const invalidMasterWAMPCall = Object.assign({}, validMasterWAMPCall, {type: 'invalid'});
 				onWorkerMessageHandler(0, invalidMasterWAMPCall);
