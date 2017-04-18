@@ -29,9 +29,7 @@ class MasterWAMPServer extends WAMPServer {
 		socketCluster.on('workerMessage', (worker, request) => {
 			if (v.validate(request, schemas.MasterWAMPRequestSchema).valid &&
 				(request.type === schemas.MasterWAMPRequestSchema.id || request.type === schemas.InterProcessRPCRequestSchema.id)) {
-
-				// request.type = schemas.MasterConfigRequestSchema.id;
-				this.processWAMPRequest(request, null);
+					this.processWAMPRequest(request, null);
 			}
 		});
 	}
@@ -43,7 +41,6 @@ class MasterWAMPServer extends WAMPServer {
 	 * @param {*} data
 	 */
 	reply(socket, request, error, data) {
-
 		return this.socketCluster.sendToWorker(request.workerId, this.createResponsePayload(request, error, data));
 	}
 
