@@ -1,5 +1,5 @@
 'use strict';
-// const socketCluster = require('./server').getInstance();
+const socketCluster = require('./server').getInstance();
 
 const Client = require('./client');
 
