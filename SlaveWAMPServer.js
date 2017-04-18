@@ -22,9 +22,7 @@ class SlaveWAMPServer extends WAMPServer {
 		this.interProcessRPC = {};
 
 		this.worker.on('masterMessage', response => {
-			console.log('\x1b[36m%s\x1b[0m', 'SlaveWAMPServer ON masterMessage: workerId', response);
 			if (v.validate(response, schemas.MasterWAMPResponseSchema).valid && response.type === schemas.MasterWAMPResponseSchema.id) {
-				console.log('\x1b[36m%s\x1b[0m', 'SlaveWAMPServer ON passed MasterWAMPResponseSchema verification. resp to socket: ', this.sockets[response.socketId].id);
 				const socket = this.sockets[response.socketId];
 				if (socket) {
 					delete response.socketId;
@@ -36,7 +34,6 @@ class SlaveWAMPServer extends WAMPServer {
 
 			}
 			else if (v.validate(response, schemas.InterProcessRPCResponseSchema).valid && response.type === schemas.InterProcessRPCResponseSchema.id) {
-				console.log('\x1b[36m%s\x1b[0m', 'SlaveWAMPServer ON passed InterProcessRPCResponseSchema verification. resp to call: ', this.interProcessRPC, this.getCall(response));
 				const callback = this.getCall(response);
 				if (callback) {
 					callback(response.err, response.data);
@@ -44,7 +41,6 @@ class SlaveWAMPServer extends WAMPServer {
 				}
 			}
 			else if (v.validate(response, schemas.MasterConfigResponseSchema).valid && response.type === schemas.MasterConfigResponseSchema.id) {
-				console.log('\x1b[36m%s\x1b[0m', 'SlaveWAMPServer ON passed MasterConfigResponseSchema verification. endpoints: ', response);
 				this.registerEventEndpoints(response.registeredEvents.reduce((memo, event) => {
 					memo[event] = () => {};
 					return memo;
@@ -54,8 +50,6 @@ class SlaveWAMPServer extends WAMPServer {
 	}
 
 	sendToMaster(procedure, data, socketId, cb) {
-		console.log('\x1b[36m%s\x1b[0m', 'SlaveWAMPServer sendToMaster: workerId', this.worker.id, (new Date()).getTime());
-
 		const req = this.normalizeRequest({
 			type: schemas.InterProcessRPCRequestSchema.id,
 			procedure,
@@ -69,7 +63,6 @@ class SlaveWAMPServer extends WAMPServer {
 		this.worker.sendToMaster(req);
 
 		this.saveCall(req, cb);
-		console.log('\x1b[36m%s\x1b[0m', 'SlaveWAMPServer savedCall', this.interProcessRPC);
 	}
 
 	processWAMPRequest(request, socket) {
@@ -78,8 +71,6 @@ class SlaveWAMPServer extends WAMPServer {
 			request.workerId = this.worker.id;
 			request.type = schemas.MasterWAMPRequestSchema.id;
 			this.worker.sendToMaster(request);
-		} else {
-			console.log('\x1b[36m%s\x1b[0m', 'SlaveWAMPServer processWAMPRequest WAMPRequestSchema.errors', v.validate(request, schemas.WAMPRequestSchema).errors);
 		}
 	}
 
@@ -88,8 +79,6 @@ class SlaveWAMPServer extends WAMPServer {
 	}
 
 	normalizeRequest(request) {
-		console.log('\x1b[36m%s\x1b[0m', 'SlaveWAMPServer normalizeRequest: request', request);
-
 		request.procedure = request.procedure.replace(/\./g, '');
 		request.socketId = request.socketId.replace(/\./g, '');
 		return request;

@@ -20,7 +20,6 @@ class MasterWAMPServer extends WAMPServer {
 		this.socketCluster = socketCluster;
 
 		socketCluster.on('workerStart', worker => {
-			console.log('\x1b[33m%s\x1b[0m', 'MasterWAMPServer: on workerStart --- sending endpoints to new worker', this.endpoints);
 			this.reply(null, {
 				registeredEvents: Object.keys(this.endpoints.event),
 				type: schemas.MasterConfigRequestSchema.id,
@@ -29,12 +28,8 @@ class MasterWAMPServer extends WAMPServer {
 		});
 
 		socketCluster.on('workerMessage', (worker, request) => {
-			console.log('\x1b[33m%s\x1b[0m', 'MasterWAMPServer: on workerMessage ', request);
 			if (v.validate(request, schemas.MasterWAMPRequestSchema).valid) {
-				console.log('\x1b[33m%s\x1b[0m', 'MasterWAMPServer: ON workerMessage ----- passed validation invoking RPC procedure:', this.endpoints.rpc);
 				this.processWAMPRequest(request, null);
-			} else {
-				console.log('\x1b[36m%s\x1b[0m', 'MasterWAMPServer ON workerMessage ----- WAMPRequestSchema.errors', v.validate(request, schemas.MasterWAMPRequestSchema).errors);
 			}
 		});
 	}
@@ -46,7 +41,6 @@ class MasterWAMPServer extends WAMPServer {
 	 * @param {*} data
 	 */
 	reply(socket, request, error, data) {
-		console.log('\x1b[36m%s\x1b[0m', 'MasterWAMPServer ----- reply type', request.workerId, request.type === schemas.MasterWAMPResponseSchema.id ? schemas.MasterWAMPResponseSchema.id : schemas.InterProcessRPCResponseSchema.id);
 		return this.socketCluster.sendToWorker(request.workerId, Object.assign(request, {
 			data,
 			error,

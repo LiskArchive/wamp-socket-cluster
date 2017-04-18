@@ -29,7 +29,6 @@ class WAMPClient {
 	 */
 	upgradeToWAMP(socket) {
 		socket.on('raw', result => {
-			console.log('\x1b[36m%s\x1b[0m', 'WAMPClient ON RAW MSG', result);
 			if (v.validate(result, WAMPResponseSchema).valid && result.type === WAMPResponseSchema.id) {
 				const resolvers = get(this.callsResolvers, `${result.procedure}.${result.signature}`);
 				if (resolvers) {
