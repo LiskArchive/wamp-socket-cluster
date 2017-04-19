@@ -57,7 +57,12 @@ class WAMPClient {
 				}
 				const signature = (Object.keys(this.callsResolvers[procedure]).length - 1) + 1;
 				this.callsResolvers[procedure][signature] = {success, fail};
-				socket.send(JSON.stringify({signature, procedure, type: WAMPRequestSchema.id, data}));
+				socket.send(JSON.stringify({
+					data,
+					procedure,
+					signature,
+					type: WAMPRequestSchema.id
+				}));
 			});
 		};
 		return socket;

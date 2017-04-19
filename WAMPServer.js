@@ -42,7 +42,7 @@ class WAMPServer {
 			socket.on(event, data => {
 				console.log('\x1b[36m%s\x1b[0m', 'WAMPServer ----- RECEIVED EVENT CALL', event, data);
 				this.processWAMPRequest({
-					type: schemas.WAMPRequestSchema.id,
+					type: schemas.EventRequestSchema.id,
 					procedure: event,
 					data
 				}, socket);
@@ -58,7 +58,6 @@ class WAMPServer {
 	 */
 	processWAMPRequest(request, socket) {
 		console.log('\x1b[36m%s\x1b[0m', 'WampServer ----- processWAMPRequest received call procedure', request.procedure);
-
 		if (this.endpoints.rpc[request.procedure] && typeof this.endpoints.rpc[request.procedure] === 'function') {
 			console.log('\x1b[36m%s\x1b[0m', 'WampServer ----- processWAMPRequest RPC');
 			return this.endpoints.rpc[request.procedure](request.data, this.reply.bind(this, socket, request));
@@ -78,14 +77,20 @@ class WAMPServer {
 	 * @param {*} data
 	 */
 	reply(socket, request, error, data) {
-		socket.send(JSON.stringify({
+		socket.send(JSON.stringify(this.createResponsePayload(request, error, data)));
+	}
+
+	createResponsePayload(request, error, data) {
+		console.log('\x1b[36m%s\x1b[0m', 'WampServer ----- createResponsePayload map for: ', request.type, schemas.reqToResMap[request.type]);
+
+		return Object.assign({}, request, {
 			success: !error,
 			data: data,
 			error: error,
-			type: schemas.WAMPResponseSchema.id,
+			type: schemas.reqToResMap[request.type],
 			procedure: request.procedure,
 			signature: request.signature
-		}));
+		});
 	}
 
 	/**

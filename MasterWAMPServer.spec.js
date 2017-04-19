@@ -25,11 +25,18 @@ describe('MasterWAMPServer', function () {
 		});
 
 
+		it('should start listening on "workerStart"', function () {
+			new MasterWAMPServer(fakeSCServer);
+			expect(fakeSCServer.on.calledTwice).to.be.ok;
+			expect(fakeSCServer.on.calledWith('workerStart')).to.be.ok;
+			expect(fakeSCServer.on.getCalls()[0].args[1]).to.be.a('function');
+		});
+
 		it('should start listening on "workerMessage"', function () {
 			new MasterWAMPServer(fakeSCServer);
-			expect(fakeSCServer.on.calledOnce).to.be.ok;
+			expect(fakeSCServer.on.calledTwice).to.be.ok;
 			expect(fakeSCServer.on.calledWith('workerMessage')).to.be.ok;
-			expect(fakeSCServer.on.getCalls()[0].args[1]).to.be.a('function');
+			expect(fakeSCServer.on.getCalls()[1].args[1]).to.be.a('function');
 		});
 
 		describe('socketCluster.on("workerMessage")', function () {
@@ -45,7 +52,7 @@ describe('MasterWAMPServer', function () {
 			};
 
 			const v2 = {
-				type: '/InterProcessRPCRequestSchemaSchema',
+				type: '/InterProcessRPCRequestSchema',
 				procedure: 'updatePeer',
 				data:
 					{ peer:
@@ -70,26 +77,26 @@ describe('MasterWAMPServer', function () {
 			});
 
 			it('should call processWAMPRequest when proper MasterWAMPRequestSchema param passed to "workerMessage" handler', function () {
-				const onWorkerMessageHandler = fakeSCServer.on.getCalls()[0].args[1];
+				const onWorkerMessageHandler = fakeSCServer.on.getCalls()[1].args[1];
 				onWorkerMessageHandler(0, v2);
 				expect(masterWAMPServer.processWAMPRequest.calledOnce).to.be.ok;
 			});
 
 			it('should call processWAMPRequest when proper MasterWAMPRequestSchema with received request', function () {
-				const onWorkerMessageHandler = fakeSCServer.on.getCalls()[0].args[1];
+				const onWorkerMessageHandler = fakeSCServer.on.getCalls()[1].args[1];
 				onWorkerMessageHandler(0, validMasterWAMPCall);
 				expect(masterWAMPServer.processWAMPRequest.calledWith(validMasterWAMPCall)).to.be.ok;
 			});
 
 			it('should not call processWAMPRequest when invalid MasterWAMPRequestSchema passed', function () {
-				const onWorkerMessageHandler = fakeSCServer.on.getCalls()[0].args[1];
+				const onWorkerMessageHandler = fakeSCServer.on.getCalls()[1].args[1];
 				const invalidMasterWAMPCall = Object.assign({}, validMasterWAMPCall, {type: 'invalid'});
 				onWorkerMessageHandler(0, invalidMasterWAMPCall);
 				expect(masterWAMPServer.processWAMPRequest.called).not.to.be.ok;
 			});
 
 			it('should not call processWAMPRequest when empty request passed', function () {
-				const onWorkerMessageHandler = fakeSCServer.on.getCalls()[0].args[1];
+				const onWorkerMessageHandler = fakeSCServer.on.getCalls()[1].args[1];
 				onWorkerMessageHandler(0, null);
 				expect(masterWAMPServer.processWAMPRequest.called).not.to.be.ok;
 			});

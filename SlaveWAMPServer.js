@@ -23,13 +23,13 @@ class SlaveWAMPServer extends WAMPServer {
 
 		this.worker.on('masterMessage', response => {
 			console.log('\x1b[36m%s\x1b[0m', 'SlaveWAMPServer ON masterMessage: workerId', response);
-			if (v.validate(response, schemas.MasterWAMPResponseSchema).valid && response.type === schemas.MasterWAMPResponseSchema.id) {
+			if (v.validate(response, schemas.MasterWAMPResponseSchema).valid && (response.type === schemas.MasterWAMPResponseSchema.id || response.type === schemas.WAMPResponseSchema.id)) {
 				console.log('\x1b[36m%s\x1b[0m', 'SlaveWAMPServer ON passed MasterWAMPResponseSchema verification. resp to socket: ', this.sockets[response.socketId].id);
 				const socket = this.sockets[response.socketId];
 				if (socket) {
 					delete response.socketId;
 					delete response.workerId;
-					response.type = schemas.WAMPResponseSchema.id;
+					response.type = schemas.WAMPRequestSchema.id;
 					this.reply(socket, response, response.error, response.data);
 				}
 				//ToDo: else it is really bad then
@@ -50,6 +50,7 @@ class SlaveWAMPServer extends WAMPServer {
 					return memo;
 				}, {}));
 			}
+
 		});
 	}
 
@@ -64,8 +65,6 @@ class SlaveWAMPServer extends WAMPServer {
 			workerId: this.worker.id,
 			signature: (new Date()).getTime()
 		});
-
-
 		this.worker.sendToMaster(req);
 
 		this.saveCall(req, cb);

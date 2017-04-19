@@ -117,7 +117,7 @@ describe('WAMPClient', function () {
 
 				expect(wampSocket.send.getCalls().length).equal(1);
 				expect(wampSocket.send.getCalls()[0].args.length).equal(1);
-				expect(wampSocket.send.getCalls()[0].args[0]).to.equal('{"signature":0,"procedure":"procedureA","type":"/WAMPCall","data":{"propA":"valueA"}}');
+				expect(wampSocket.send.getCalls()[0].args[0]).to.equal('{"data":{"propA":"valueA"},"procedure":"procedureA","signature":0,"type":"/WAMPRequest"}');
 			});
 
 
@@ -223,7 +223,7 @@ describe('WAMPClient', function () {
 				const sampleWampServerResponse = Object.assign(someArgument, {
 					procedure,
 					type: WAMPResponseSchema.id,
-					signature: 'wrong',
+					signature: 99999,
 					success: false,
 					error: 'err desc',
 					data: {
@@ -236,7 +236,7 @@ describe('WAMPClient', function () {
 				try {
 					mockedServerResponse(sampleWampServerResponse);
 				} catch(err) {
-					expect(err.toString()).equal(`Error: Unable to find resolving function for procedure ${procedure} with signature wrong`);
+					expect(err.toString()).equal(`Error: Unable to find resolving function for procedure ${procedure} with signature ${sampleWampServerResponse.signature}`);
 					done();
 				}
 			});

@@ -1,7 +1,6 @@
 'use strict';
 
 const Validator = require('jsonschema').Validator;
-const setWith = require('lodash.setwith');
 const get = require('lodash.get');
 const WAMPServer = require('./WAMPServer');
 
@@ -30,8 +29,10 @@ class MasterWAMPServer extends WAMPServer {
 
 		socketCluster.on('workerMessage', (worker, request) => {
 			console.log('\x1b[33m%s\x1b[0m', 'MasterWAMPServer: on workerMessage ', request);
-			if (v.validate(request, schemas.MasterWAMPRequestSchema).valid) {
-				console.log('\x1b[33m%s\x1b[0m', 'MasterWAMPServer: ON workerMessage ----- passed validation invoking RPC procedure:', this.endpoints.rpc);
+			if (v.validate(request, schemas.MasterWAMPRequestSchema).valid &&
+				(request.type === schemas.MasterWAMPRequestSchema.id || request.type === schemas.InterProcessRPCRequestSchema.id)) {
+				console.log('\x1b[33m%s\x1b[0m', 'MasterWAMPServer: ON workerMessage ----- passed validation invoking RPC procedure:', request.type);
+				// request.type = schemas.MasterConfigRequestSchema.id;
 				this.processWAMPRequest(request, null);
 			} else {
 				console.log('\x1b[36m%s\x1b[0m', 'MasterWAMPServer ON workerMessage ----- WAMPRequestSchema.errors', v.validate(request, schemas.MasterWAMPRequestSchema).errors);
@@ -46,17 +47,8 @@ class MasterWAMPServer extends WAMPServer {
 	 * @param {*} data
 	 */
 	reply(socket, request, error, data) {
-		console.log('\x1b[36m%s\x1b[0m', 'MasterWAMPServer ----- reply type', request.workerId, request.type === schemas.MasterWAMPResponseSchema.id ? schemas.MasterWAMPResponseSchema.id : schemas.InterProcessRPCResponseSchema.id);
-		return this.socketCluster.sendToWorker(request.workerId, Object.assign(request, {
-			data,
-			error,
-			success: !error,
-			procedure: request.procedure,
-			workerId: request.workerId,
-			socketId: request.socketId,
-			signature: request.signature,
-			type: schemas.requestsIdsMap[request.type]
-		}));
+		console.log('\x1b[36m%s\x1b[0m', 'MasterWAMPServer ----- reply payload', this.createResponsePayload(request, error, data));
+		return this.socketCluster.sendToWorker(request.workerId, this.createResponsePayload(request, error, data));
 	}
 
 }

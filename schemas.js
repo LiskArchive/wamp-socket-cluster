@@ -26,6 +26,17 @@ const WAMPRequestSchema = {
 	required: ['type', 'procedure']
 };
 
+const EventRequestSchema = {
+	id: '/EventRequestSchema',
+	type: 'object',
+	properties: {
+		data: {},
+		procedure: {type: 'string'},
+		type: {type: 'string'}
+	},
+	required: ['type', 'procedure']
+};
+
 const MasterWAMPResponseSchema = {
 	id: '/MasterWAMPResponse',
 	type: 'object',
@@ -74,7 +85,7 @@ const InterProcessRPCResponseSchema = {
 
 
 const InterProcessRPCRequestSchema = {
-	id: '/InterProcessRPCRequestSchemaSchema',
+	id: '/InterProcessRPCRequestSchema',
 	type: 'object',
 	properties: {
 		data: {},
@@ -106,14 +117,14 @@ const MasterConfigRequestSchema = {
 	required: ['type']
 };
 
-const responsesIdsMap = {
+const resToReqMap = {
 	[WAMPResponseSchema.id]: WAMPRequestSchema.id,
 	[MasterWAMPResponseSchema.id]: WAMPRequestSchema.id,
 	[InterProcessRPCResponseSchema.id]: InterProcessRPCRequestSchema.id,
 	[MasterConfigResponseSchema.id]: MasterConfigRequestSchema.id,
 };
 
-const requestsIdsMap = {
+const reqToResMap = {
 	[WAMPRequestSchema.id]: WAMPResponseSchema.id,
 	[MasterWAMPRequestSchema.id]: WAMPResponseSchema.id,
 	[InterProcessRPCRequestSchema.id]: InterProcessRPCResponseSchema.id,
@@ -129,6 +140,7 @@ module.exports = {
 	MasterWAMPRequestSchema,
 	MasterConfigRequestSchema,
 	MasterConfigResponseSchema,
-	responsesIdsMap,
-	requestsIdsMap
+	EventRequestSchema,
+	resToReqMap,
+	reqToResMap
 };
