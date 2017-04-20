@@ -1,10 +1,6 @@
 "use strict";
 
-const Validator = require('jsonschema').Validator;
-
 const schemas = require('./schemas');
-
-const v = new Validator();
 
 class WAMPServer {
 
@@ -28,7 +24,7 @@ class WAMPServer {
 			} catch (ex) {
 				return;
 			}
-			if (v.validate(request, schemas.WAMPRequestSchema).valid && request.type === schemas.WAMPRequestSchema.id) {
+			if (schemas.isValid(request, schemas.WAMPRequestSchema)) {
 				this.processWAMPRequest(request, socket);
 			} else {
 

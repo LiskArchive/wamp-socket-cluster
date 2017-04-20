@@ -1,5 +1,8 @@
 'use strict';
 
+const Validator = require('jsonschema').Validator;
+const v = new Validator();
+
 const WAMPResponseSchema = {
 	id: '/WAMPResponse',
 	type: 'object',
@@ -131,6 +134,8 @@ const reqToResMap = {
 	[MasterConfigRequestSchema.id]: MasterConfigResponseSchema.id,
 };
 
+const isValid = (obj, schema) => v.validate(obj, schema).valid && obj.type === schema.id;
+
 module.exports = {
 	WAMPRequestSchema,
 	WAMPResponseSchema,
@@ -142,5 +147,6 @@ module.exports = {
 	MasterConfigResponseSchema,
 	EventRequestSchema,
 	resToReqMap,
-	reqToResMap
+	reqToResMap,
+	isValid
 };

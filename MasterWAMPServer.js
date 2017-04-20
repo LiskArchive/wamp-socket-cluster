@@ -1,11 +1,9 @@
 'use strict';
 
-const Validator = require('jsonschema').Validator;
 const get = require('lodash.get');
 const WAMPServer = require('./WAMPServer');
-
 const schemas = require('./schemas');
-
+const Validator = require('jsonschema').Validator;
 const v = new Validator();
 
 class MasterWAMPServer extends WAMPServer {
@@ -27,9 +25,8 @@ class MasterWAMPServer extends WAMPServer {
 		});
 
 		socketCluster.on('workerMessage', (worker, request) => {
-			if (v.validate(request, schemas.MasterWAMPRequestSchema).valid &&
-				(request.type === schemas.MasterWAMPRequestSchema.id || request.type === schemas.InterProcessRPCRequestSchema.id)) {
-					this.processWAMPRequest(request, null);
+			if (schemas.isValid(request, schemas.MasterWAMPRequestSchema) || schemas.isValid(request, schemas.InterProcessRPCRequestSchema)) {
+				this.processWAMPRequest(request, null);
 			}
 		});
 	}

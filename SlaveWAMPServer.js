@@ -22,7 +22,7 @@ class SlaveWAMPServer extends WAMPServer {
 		this.interProcessRPC = {};
 
 		this.worker.on('masterMessage', response => {
-			if (v.validate(response, schemas.MasterWAMPResponseSchema).valid && (response.type === schemas.MasterWAMPResponseSchema.id || response.type === schemas.WAMPResponseSchema.id)) {
+			if (schemas.isValid(response, schemas.MasterWAMPResponseSchema) || schemas.isValid(response, schemas.WAMPResponseSchema)) {
 				const socket = this.sockets[response.socketId];
 				if (socket) {
 					delete response.socketId;
@@ -31,16 +31,15 @@ class SlaveWAMPServer extends WAMPServer {
 					this.reply(socket, response, response.error, response.data);
 				}
 				//ToDo: else it is really bad then
-
 			}
-			else if (v.validate(response, schemas.InterProcessRPCResponseSchema).valid && response.type === schemas.InterProcessRPCResponseSchema.id) {
+			else if (schemas.isValid(response, schemas.InterProcessRPCResponseSchema)) {
 				const callback = this.getCall(response);
 				if (callback) {
 					callback(response.err, response.data);
 					this.deleteCall(response);
 				}
 			}
-			else if (v.validate(response, schemas.MasterConfigResponseSchema).valid && response.type === schemas.MasterConfigResponseSchema.id) {
+			else if (schemas.isValid(response, schemas.MasterConfigResponseSchema)) {
 				this.registerEventEndpoints(response.registeredEvents.reduce((memo, event) => {
 					memo[event] = () => {};
 					return memo;

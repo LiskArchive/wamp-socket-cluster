@@ -1,13 +1,7 @@
 "use strict";
 
 const get = require('lodash.get');
-const Validator = require('jsonschema').Validator;
-
-const WAMPResponseSchema = require('./schemas').WAMPResponseSchema;
-const WAMPRequestSchema = require('./schemas').WAMPRequestSchema;
-
-const v = new Validator();
-
+const schemas = require('./schemas');
 
 class WAMPClient {
 
@@ -29,7 +23,7 @@ class WAMPClient {
 	 */
 	upgradeToWAMP(socket) {
 		socket.on('raw', result => {
-			if (v.validate(result, WAMPResponseSchema).valid && result.type === WAMPResponseSchema.id) {
+			if (schemas.isValid(result, schemas.WAMPResponseSchema)) {
 				const resolvers = get(this.callsResolvers, `${result.procedure}.${result.signature}`);
 				if (resolvers) {
 					result.success ? resolvers.success(result.data) : resolvers.fail(result.error);
@@ -60,7 +54,7 @@ class WAMPClient {
 					data,
 					procedure,
 					signature,
-					type: WAMPRequestSchema.id
+					type: schemas.WAMPRequestSchema.id
 				}));
 			});
 		};
