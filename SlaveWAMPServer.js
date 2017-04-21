@@ -13,13 +13,14 @@ class SlaveWAMPServer extends WAMPServer {
 
 	/**
 	 * @param {SocketCluster.Worker} worker
-	 * @param {Function}[empty function] cb
+	 * @param {Function}[configuredCb=function] configuredCb
 	 */
-	constructor(worker) {
+	constructor(worker, configuredCb = () => {}) {
 		super();
 		this.worker = worker;
 		this.sockets = worker.scServer.clients;
 		this.interProcessRPC = {};
+		this.config = {};
 
 		this.worker.on('masterMessage', response => {
 			if (schemas.isValid(response, schemas.MasterWAMPResponseSchema) || schemas.isValid(response, schemas.WAMPResponseSchema)) {
@@ -40,10 +41,14 @@ class SlaveWAMPServer extends WAMPServer {
 				}
 			}
 			else if (schemas.isValid(response, schemas.MasterConfigResponseSchema)) {
+				console.log('\x1b[36m%s\x1b[0m', 'SlaveWAMPServer --- ON MASTER MSG --- received config', response.config);
+				this.config = response.config;
 				this.registerEventEndpoints(response.registeredEvents.reduce((memo, event) => {
 					memo[event] = () => {};
 					return memo;
 				}, {}));
+				console.log('\x1b[36m%s\x1b[0m', 'SlaveWAMPServer --- ON MASTER CONFIG --- invoke cb',  configuredCb);
+				return configuredCb(null, this);
 			}
 		});
 	}

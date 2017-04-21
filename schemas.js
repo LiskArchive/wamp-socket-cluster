@@ -106,6 +106,7 @@ const MasterConfigResponseSchema = {
 	type: 'object',
 	properties: {
 		registeredEvents:  {type: 'array'},
+		config:  {type: 'object'},
 		type: {type: 'string'}
 	},
 	required: ['registeredEvents', 'type']

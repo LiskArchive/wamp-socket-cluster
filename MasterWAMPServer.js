@@ -10,15 +10,19 @@ class MasterWAMPServer extends WAMPServer {
 
 	/**
 	 * @param {SocketCluster.SocketCluster} socketCluster
+	 * @param {Object} config
 	 */
-	constructor(socketCluster) {
+	constructor(socketCluster, config) {
 		
 		super();
 		this.socketCluster = socketCluster;
 
 		socketCluster.on('workerStart', worker => {
+			console.log('\x1b[36m%s\x1b[0m', 'MasterWAMPServer ----- ON WORKER START --- sending conf');
+
 			this.reply(null, {
 				registeredEvents: Object.keys(this.endpoints.event),
+				config: config || {},
 				type: schemas.MasterConfigRequestSchema.id,
 				workerId: worker.id
 			});
