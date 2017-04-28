@@ -23,6 +23,7 @@ class SlaveWAMPServer extends WAMPServer {
 		this.config = {};
 
 		this.worker.on('masterMessage', response => {
+			// console.log('\x1b[36m%s\x1b[0m', 'SlaveWAMPServer --- ON MASTRER MSG --- ', response);
 			if (schemas.isValid(response, schemas.MasterWAMPResponseSchema) || schemas.isValid(response, schemas.WAMPResponseSchema)) {
 				const socket = this.sockets[response.socketId];
 				if (socket) {
@@ -42,13 +43,22 @@ class SlaveWAMPServer extends WAMPServer {
 			}
 			else if (schemas.isValid(response, schemas.MasterConfigResponseSchema)) {
 				console.log('\x1b[36m%s\x1b[0m', 'SlaveWAMPServer --- ON MASTER MSG --- received config', response.config);
-				this.config = response.config;
-				this.registerEventEndpoints(response.registeredEvents.reduce((memo, event) => {
-					memo[event] = () => {};
-					return memo;
-				}, {}));
+				this.config = Object.assign({}, this.config, response.config);
+				if (response.registeredEvents) {
+					this.registerEventEndpoints(response.registeredEvents.reduce((memo, event) => {
+						memo[event] = () => {};
+						return memo;
+					}, {}));
+				}
 				console.log('\x1b[36m%s\x1b[0m', 'SlaveWAMPServer --- ON MASTER CONFIG --- invoke cb',  configuredCb);
 				return configuredCb(null, this);
+			}
+			else if (schemas.isValid(response, schemas.BroadcastSchema)) {
+				console.log('\x1b[36m%s\x1b[0m', 'SlaveWAMPServer --- ON BROADCAST MSG --- received brodcast to cleints: ', this.worker.scServer.clients);
+				for (const [socketId, socket] of Object.entries(this.worker.scServer.clients)) {
+					console.log('\x1b[36m%s\x1b[0m', 'SlaveWAMPServer --- ON BROADCAST MSG --- broadcast to client', socketId);
+					socket.emit(response.procedure, response.data);
+				}
 			}
 		});
 	}

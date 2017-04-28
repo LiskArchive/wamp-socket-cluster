@@ -24,6 +24,8 @@ class WAMPClient {
 	upgradeToWAMP(socket) {
 		socket.on('raw', result => {
 			if (schemas.isValid(result, schemas.WAMPResponseSchema)) {
+				console.log('\x1b[36m%s\x1b[0m', 'WAMPClient ----- GET VALID RESPONSE --- procedure / success', result.procedure, result.success, this.callsResolvers);
+
 				const resolvers = get(this.callsResolvers, `${result.procedure}.${result.signature}`);
 				if (resolvers) {
 					result.success ? resolvers.success(result.data) : resolvers.fail(result.error);
@@ -48,8 +50,9 @@ class WAMPClient {
 				if (Object.keys(this.callsResolvers[procedure]).length >= WAMPClient.MAX_CALLS_ALLOWED) {
 					return fail(`No more than ${WAMPClient.MAX_CALLS_ALLOWED} calls allowed`);
 				}
-				const signature = (Object.keys(this.callsResolvers[procedure]).length - 1) + 1;
+				const signature = (new Date()).getTime();
 				this.callsResolvers[procedure][signature] = {success, fail};
+				console.log('\x1b[36m%s\x1b[0m', 'WAMPClient ----- SEND WAMP RPC ---', procedure, data);
 				socket.send(JSON.stringify({
 					data,
 					procedure,
