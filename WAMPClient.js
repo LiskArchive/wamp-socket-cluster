@@ -9,7 +9,7 @@ class WAMPClient {
 	 * @return {number}
 	 */
 	static get MAX_CALLS_ALLOWED() {
-		return 1000;
+		return 100;
 	}
 
 	static generateSignature(procedureCalls) {

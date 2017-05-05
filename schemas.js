@@ -121,37 +121,24 @@ const MasterConfigRequestSchema = {
 	required: ['type']
 };
 
-const BroadcastSchema = {
-	id: '/BroadcastSchema',
-	type: 'object',
-	properties: {
-		type: {type: 'string'},
-		procedure: {type: 'string'},
-		workerId: {type: 'number'}
-	},
-	required: ['type']
-};
 
 const resToReqMap = {
 	[WAMPResponseSchema.id]: WAMPRequestSchema.id,
 	[MasterWAMPResponseSchema.id]: WAMPRequestSchema.id,
 	[InterProcessRPCResponseSchema.id]: InterProcessRPCRequestSchema.id,
-	[MasterConfigResponseSchema.id]: MasterConfigRequestSchema.id,
-	[BroadcastSchema.id]: BroadcastSchema.id,
+	[MasterConfigResponseSchema.id]: MasterConfigRequestSchema.id
 };
 
 const reqToResMap = {
 	[WAMPRequestSchema.id]: WAMPResponseSchema.id,
 	[MasterWAMPRequestSchema.id]: WAMPResponseSchema.id,
 	[InterProcessRPCRequestSchema.id]: InterProcessRPCResponseSchema.id,
-	[MasterConfigRequestSchema.id]: MasterConfigResponseSchema.id,
-	[BroadcastSchema.id]: BroadcastSchema.id,
+	[MasterConfigRequestSchema.id]: MasterConfigResponseSchema.id
 };
 
 const isValid = (obj, schema) => v.validate(obj, schema).valid && obj.type === schema.id;
 
 module.exports = {
-	BroadcastSchema,
 	WAMPRequestSchema,
 	WAMPResponseSchema,
 	InterProcessRPCRequestSchema,

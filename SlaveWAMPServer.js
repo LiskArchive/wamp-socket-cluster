@@ -54,13 +54,6 @@ class SlaveWAMPServer extends WAMPServer {
 				console.log('\x1b[36m%s\x1b[0m', 'SlaveWAMPServer --- ON MASTER CONFIG --- invoke cb',  configuredCb);
 				return configuredCb(null, this);
 			}
-			else if (schemas.isValid(response, schemas.BroadcastSchema)) {
-				console.log('\x1b[36m%s\x1b[0m', 'SlaveWAMPServer --- ON BROADCAST MSG --- received brodcast to cleints: ', this.worker.scServer.clients);
-				for (const [socketId, socket] of Object.entries(this.worker.scServer.clients)) {
-					console.log('\x1b[36m%s\x1b[0m', 'SlaveWAMPServer --- ON BROADCAST MSG --- broadcast to client', socketId);
-					socket.emit(response.procedure, response.data);
-				}
-			}
 		});
 	}
 

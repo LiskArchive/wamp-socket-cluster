@@ -4,7 +4,6 @@ const get = require('lodash.get');
 const WAMPServer = require('./WAMPServer');
 const schemas = require('./schemas');
 const Validator = require('jsonschema').Validator;
-const v = new Validator();
 
 class MasterWAMPServer extends WAMPServer {
 
@@ -41,17 +40,6 @@ class MasterWAMPServer extends WAMPServer {
 			this.workerIndices.splice(this.workerIndices.indexOf(workerInfo.id)), 1);
 	}
 
-	broadcast(procedure, data) {
-		this.workerIndices.forEach(workerId => {
-			console.log('\x1b[36m%s\x1b[0m', 'MasterWAMPServer ----- BROADCASTING TO WORKER: ', workerId);
-			this.reply(null, {
-				type: schemas.BroadcastSchema.id,
-				procedure,
-				workerId
-			}, null, data);
-		});
-	}
-
 	/**
 	 * @param {SocketCluster.Socket} socket
 	 * @param {WAMPRequestSchema} request
@@ -62,15 +50,6 @@ class MasterWAMPServer extends WAMPServer {
 		const payload = this.createResponsePayload(request, error, data);
 		console.log('\x1b[36m%s\x1b[0m', 'MasterWAMPServer ----- SENDING REPLY: ', payload, request.socketId);
 		return this.socketCluster.sendToWorker(request.workerId, payload);
-	}
-
-	broadcastConfig(config) {
-		console.log('\x1b[36m%s\x1b[0m', 'MasterWAMPServer ----- broadcastConfig --- this.socketCluster', this.socketCluster);
-
-		// this.workerIndices.forEach(workerId => this.socketCluster.sendToWorker(workerId, {
-		// 	config,
-		// 	type: schemas.MasterConfigRequestSchema.id
-		// }));
 	}
 
 }
