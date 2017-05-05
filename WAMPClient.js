@@ -19,7 +19,6 @@ class WAMPClient {
 
 	constructor() {
 		this.callsResolvers = {};
-		this.random = Math.random();
 	}
 
 	/**
@@ -31,9 +30,7 @@ class WAMPClient {
 			return socket;
 		}
 		socket.on('raw', result => {
-			console.log('\x1b[36m%s\x1b[0m', 'WAMPClient ----- ON RAW MESSAGE   --- ', result, socket.id, this.random);
 			if (schemas.isValid(result, schemas.WAMPResponseSchema)) {
-				console.log('\x1b[36m%s\x1b[0m', 'WAMPClient ----- GET VALID RESPONSE --- procedure / success', result, result.success, this.callsResolvers);
 				const resolvers = get(this.callsResolvers, `${result.procedure}.${result.signature}`);
 				if (resolvers) {
 					result.success ? resolvers.success(result.data) : resolvers.fail(result.error);
@@ -60,12 +57,7 @@ class WAMPClient {
 				}
 				const signature = WAMPClient.generateSignature(this.callsResolvers[procedure]);
 				this.callsResolvers[procedure][signature] = {success, fail};
-				console.log('\x1b[36m%s\x1b[0m', 'WAMPClient ----- SEND WAMP RPC ---', JSON.stringify({
-					data,
-					procedure,
-					signature,
-					type: schemas.WAMPRequestSchema.id
-				}), socket.id, this.random, this.callsResolvers);
+
 				socket.send(JSON.stringify({
 					data,
 					procedure,

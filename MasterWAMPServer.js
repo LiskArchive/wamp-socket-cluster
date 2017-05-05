@@ -3,7 +3,6 @@
 const get = require('lodash.get');
 const WAMPServer = require('./WAMPServer');
 const schemas = require('./schemas');
-const Validator = require('jsonschema').Validator;
 
 class MasterWAMPServer extends WAMPServer {
 
@@ -18,8 +17,6 @@ class MasterWAMPServer extends WAMPServer {
 		this.workerIndices = [];
 
 		socketCluster.on('workerStart', worker => {
-			console.log('\x1b[36m%s\x1b[0m', 'MasterWAMPServer ----- ON WORKER START --- sending conf');
-
 			this.reply(null, {
 				registeredEvents: Object.keys(this.endpoints.event),
 				config: config || {},
@@ -48,7 +45,6 @@ class MasterWAMPServer extends WAMPServer {
 	 */
 	reply(socket, request, error, data) {
 		const payload = this.createResponsePayload(request, error, data);
-		console.log('\x1b[36m%s\x1b[0m', 'MasterWAMPServer ----- SENDING REPLY: ', payload, request.socketId);
 		return this.socketCluster.sendToWorker(request.workerId, payload);
 	}
 

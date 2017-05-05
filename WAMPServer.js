@@ -9,8 +9,6 @@ class WAMPServer {
 			rpc: {},
 			event: {}
 		};
-		this.cnt = 0;
-		this.random = Math.random();
 	}
 
 	/**
@@ -21,7 +19,6 @@ class WAMPServer {
 
 		//register RPC endpoints
 		socket.on('raw', request => {
-			console.log('\x1b[36m%s\x1b[0m', 'WAMPServer ----- ON RAW ---', request, socket.id);
 			try {
 				request = JSON.parse(request);
 			} catch (ex) {
@@ -53,9 +50,6 @@ class WAMPServer {
 	 * @param {SocketCluster.Socket} socket
 	 */
 	processWAMPRequest(request, socket) {
-		console.log('\x1b[36m%s\x1b[0m', 'WAMPServer --- processWAMPRequest --- ', request, socket ? socket.id : 'from Master call');
-		console.log('\x1b[36m%s\x1b[0m', 'WAMPServer --- processWAMPRequest --- binding to reply: ', this.reply);
-
 		if (this.endpoints.rpc[request.procedure] && typeof this.endpoints.rpc[request.procedure] === 'function') {
 
 			return this.endpoints.rpc[request.procedure](request.data, this.reply.bind(this, socket, request));
@@ -76,11 +70,7 @@ class WAMPServer {
 	 */
 	reply(socket, request, error, data) {
 		const payload = this.createResponsePayload(request, error, data);
-		console.log('\x1b[36m%s\x1b[0m', 'WAMPServer ----- REPLY  WITH ---', payload, socket.id, this.random, this.prototype);
 		socket.send(JSON.stringify(payload));
-		// socket.send('DUPA' + this.cnt);
-		// socket.send('DUPA ### ' + this.cnt);
-		// this.cnt += 1;
 	}
 
 	createResponsePayload(request, error, data) {

@@ -24,7 +24,6 @@ class SlaveWAMPServer extends WAMPServer {
 		this.config = {};
 
 		this.worker.on('masterMessage', response => {
-			console.log('\x1b[36m%s\x1b[0m', 'SlaveWAMPServer --- ON MASTRER MSG --- ', response);
 			if (schemas.isValid(response, schemas.MasterWAMPResponseSchema) || schemas.isValid(response, schemas.WAMPResponseSchema)) {
 				const socket = this.sockets[response.socketId];
 				if (socket) {
@@ -32,8 +31,9 @@ class SlaveWAMPServer extends WAMPServer {
 					delete response.workerId;
 					response.type = schemas.WAMPRequestSchema.id;
 					this.reply(socket, response, response.error, response.data);
+				} else {
+					throw new Error('Socket that requested RPC call not found anymore');
 				}
-				//ToDo: else it is really bad then
 			}
 			else if (schemas.isValid(response, schemas.InterProcessRPCResponseSchema)) {
 				const callback = this.getCall(response);
@@ -43,7 +43,6 @@ class SlaveWAMPServer extends WAMPServer {
 				}
 			}
 			else if (schemas.isValid(response, schemas.MasterConfigResponseSchema)) {
-				console.log('\x1b[36m%s\x1b[0m', 'SlaveWAMPServer --- ON MASTER MSG --- received config', response.config);
 				this.config = Object.assign({}, this.config, response.config);
 				if (response.registeredEvents) {
 					this.registerEventEndpoints(response.registeredEvents.reduce((memo, event) => {
@@ -51,7 +50,6 @@ class SlaveWAMPServer extends WAMPServer {
 						return memo;
 					}, {}));
 				}
-				console.log('\x1b[36m%s\x1b[0m', 'SlaveWAMPServer --- ON MASTER CONFIG --- invoke cb',  configuredCb);
 				return configuredCb(null, this);
 			}
 		});
@@ -66,7 +64,6 @@ class SlaveWAMPServer extends WAMPServer {
 			workerId: this.worker.id,
 			signature: WAMPClient.generateSignature(get(this.interProcessRPC, `${socketId}.${procedure}`, {}))
 		});
-		console.log('\x1b[36m%s\x1b[0m', 'SlaveWAMPServer --- SEND TO MASTER --- ', req);
 		this.worker.sendToMaster(req);
 
 		this.saveCall(req, cb);
@@ -74,7 +71,6 @@ class SlaveWAMPServer extends WAMPServer {
 	}
 
 	processWAMPRequest(request, socket) {
-		console.log('\x1b[36m%s\x1b[0m', 'SlaveWAMPServer --- processWAMPRequest --- ', request, socket.id);
 		if (v.validate(request, schemas.WAMPRequestSchema).valid) {
 			request.socketId = socket.id;
 			request.workerId = this.worker.id;
