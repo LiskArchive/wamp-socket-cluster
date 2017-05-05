@@ -12,6 +12,8 @@ const WAMPResponseSchema = require('./schemas').WAMPResponseSchema;
 
 const expect = chai.expect;
 
+const clock = sinon.useFakeTimers(new Date(2020,1,1).getTime());
+
 describe('WAMPClient', function () {
 
 	let fakeSocket;
@@ -65,10 +67,13 @@ describe('WAMPClient', function () {
 			it('should create correct entry in wampClient.callsResolvers', function () {
 				const procedure = 'procedureA';
 				wampSocket.wampSend(procedure);
-				expect(wampClient.callsResolvers).to.have.deep.property(`${procedure}.0`);
-				expect(wampClient.callsResolvers[procedure][0]).to.have.all.keys('success', 'fail');
-				expect(wampClient.callsResolvers[procedure][0].success).to.be.a('function');
-				expect(wampClient.callsResolvers[procedure][0].fail).to.be.a('function');
+				expect(Object.keys(wampClient.callsResolvers[procedure]).length).equal(1);
+				const signature = Object.keys(wampClient.callsResolvers[procedure])[0];
+
+				expect(signature).to.contain('_0');
+				expect(wampClient.callsResolvers[procedure][signature]).to.have.all.keys('success', 'fail');
+				expect(wampClient.callsResolvers[procedure][signature].success).to.be.a('function');
+				expect(wampClient.callsResolvers[procedure][signature].fail).to.be.a('function');
 			});
 
 			it('should create 2 correct entries for calling twice the same procedures', function () {
@@ -76,8 +81,13 @@ describe('WAMPClient', function () {
 				wampSocket.wampSend(procedure);
 				wampSocket.wampSend(procedure);
 				expect(Object.keys(wampClient.callsResolvers).length).equal(1);
-				expect(wampClient.callsResolvers).to.have.deep.property(`${procedure}.0`);
-				expect(wampClient.callsResolvers).to.have.deep.property(`${procedure}.1`);
+				expect(Object.keys(wampClient.callsResolvers[procedure]).length).equal(2);
+				const signatureA = Object.keys(wampClient.callsResolvers[procedure])[0];
+				const signatureB = Object.keys(wampClient.callsResolvers[procedure])[1];
+
+				expect(signatureA).to.contain('_0');
+				expect(signatureB).to.contain('_1');
+
 			});
 
 			it('should create 2 correct entries for calling twice different procedures', function () {
@@ -86,10 +96,12 @@ describe('WAMPClient', function () {
 				wampSocket.wampSend(procedureA);
 				wampSocket.wampSend(procedureB);
 				expect(Object.keys(wampClient.callsResolvers).length).equal(2);
-				expect(wampClient.callsResolvers).to.have.deep.property(`${procedureA}.0`);
 				expect(Object.keys(wampClient.callsResolvers[procedureA]).length).equal(1);
-				expect(wampClient.callsResolvers).to.have.deep.property(`${procedureB}.0`);
+				const signatureA = Object.keys(wampClient.callsResolvers[procedureA])[0];
+				expect(signatureA).to.contain('_0');
 				expect(Object.keys(wampClient.callsResolvers[procedureB]).length).equal(1);
+				const signatureB = Object.keys(wampClient.callsResolvers[procedureB])[0];
+				expect(signatureB).to.contain('_0');
 			});
 
 
@@ -117,7 +129,8 @@ describe('WAMPClient', function () {
 
 				expect(wampSocket.send.getCalls().length).equal(1);
 				expect(wampSocket.send.getCalls()[0].args.length).equal(1);
-				expect(wampSocket.send.getCalls()[0].args[0]).to.equal('{"data":{"propA":"valueA"},"procedure":"procedureA","signature":0,"type":"/WAMPRequest"}');
+				const signature = JSON.parse(wampSocket.send.getCalls()[0].args[0]).signature;
+				expect(wampSocket.send.getCalls()[0].args[0]).to.equal(`{"data":{"propA":"valueA"},"procedure":"procedureA","signature":"${signature}","type":"/WAMPRequest"}`);
 			});
 
 
@@ -145,7 +158,7 @@ describe('WAMPClient', function () {
 				const sampleWampServerResponse = {
 					procedure,
 					type: WAMPResponseSchema.id,
-					signature: 0,
+					signature: (new Date()).getTime() + '_0',
 					success: true,
 					error: null,
 					data: {
@@ -173,7 +186,7 @@ describe('WAMPClient', function () {
 				const invalidWampServerResponse = {
 					procedure,
 					type: WAMPResponseSchema.id,
-					signature: 0,
+					signature: (new Date()).getTime() + '_0',
 					success: false,
 					error: 'err desc',
 					data: {
@@ -223,7 +236,7 @@ describe('WAMPClient', function () {
 				const sampleWampServerResponse = Object.assign(someArgument, {
 					procedure,
 					type: WAMPResponseSchema.id,
-					signature: 99999,
+					signature: '99999',
 					success: false,
 					error: 'err desc',
 					data: {

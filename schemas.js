@@ -10,7 +10,7 @@ const WAMPResponseSchema = {
 		data: {},
 		error: {},
 		procedure: {type: 'string'},
-		signature: {type: 'number'},
+		signature: {type: 'string'},
 		success: {type: 'boolean'},
 		type: {type: 'string'},
 	},
@@ -22,7 +22,7 @@ const WAMPRequestSchema = {
 	type: 'object',
 	properties: {
 		data: {},
-		signature: {type: 'number'},
+		signature: {type: 'string'},
 		procedure: {type: 'string'},
 		type: {type: 'string'}
 	},
@@ -47,7 +47,7 @@ const MasterWAMPResponseSchema = {
 		data: {},
 		error: {},
 		procedure: {type: 'string'},
-		signature: {type: 'number'},
+		signature: {type: 'string'},
 		socketId: {type: 'string'},
 		success: {type: 'boolean'},
 		type: {type: 'string'},
@@ -62,7 +62,7 @@ const MasterWAMPRequestSchema = {
 	properties: {
 		data: {},
 		procedure: {type: 'string'},
-		signature: {type: 'number'},
+		signature: {type: 'string'},
 		socketId: {type: 'string'},
 		type: {type: 'string'},
 		workerId: {type: 'number'}
@@ -77,7 +77,7 @@ const InterProcessRPCResponseSchema = {
 		data: {},
 		error: {},
 		procedure: {type: 'string'},
-		signature: {type: 'number'},
+		signature: {type: 'string'},
 		socketId: {type: 'string'},
 		success: {type: 'boolean'},
 		type: {type: 'string'},
@@ -93,7 +93,7 @@ const InterProcessRPCRequestSchema = {
 	properties: {
 		data: {},
 		procedure: {type: 'string'},
-		signature: {type: 'number'},
+		signature: {type: 'string'},
 		socketId: {type: 'string'},
 		type: {type: 'string'},
 		workerId: {type: 'number'}

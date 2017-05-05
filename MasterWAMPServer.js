@@ -59,12 +59,14 @@ class MasterWAMPServer extends WAMPServer {
 	 * @param {*} data
 	 */
 	reply(socket, request, error, data) {
-		console.log('\x1b[36m%s\x1b[0m', 'MasterWAMPServer ----- SENDING REPLY: ', this.createResponsePayload(request, error, data));
-		return this.socketCluster.sendToWorker(request.workerId, this.createResponsePayload(request, error, data));
+		const payload = this.createResponsePayload(request, error, data);
+		console.log('\x1b[36m%s\x1b[0m', 'MasterWAMPServer ----- SENDING REPLY: ', payload, request.socketId);
+		return this.socketCluster.sendToWorker(request.workerId, payload);
 	}
 
 	broadcastConfig(config) {
 		console.log('\x1b[36m%s\x1b[0m', 'MasterWAMPServer ----- broadcastConfig --- this.socketCluster', this.socketCluster);
+
 		// this.workerIndices.forEach(workerId => this.socketCluster.sendToWorker(workerId, {
 		// 	config,
 		// 	type: schemas.MasterConfigRequestSchema.id

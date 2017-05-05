@@ -27,14 +27,14 @@ describe('MasterWAMPServer', function () {
 
 		it('should start listening on "workerStart"', function () {
 			new MasterWAMPServer(fakeSCServer);
-			expect(fakeSCServer.on.calledTwice).to.be.ok;
+			expect(fakeSCServer.on.called).to.be.ok;
 			expect(fakeSCServer.on.calledWith('workerStart')).to.be.ok;
 			expect(fakeSCServer.on.getCalls()[0].args[1]).to.be.a('function');
 		});
 
 		it('should start listening on "workerMessage"', function () {
 			new MasterWAMPServer(fakeSCServer);
-			expect(fakeSCServer.on.calledTwice).to.be.ok;
+			expect(fakeSCServer.on.called).to.be.ok;
 			expect(fakeSCServer.on.calledWith('workerMessage')).to.be.ok;
 			expect(fakeSCServer.on.getCalls()[1].args[1]).to.be.a('function');
 		});
@@ -48,7 +48,7 @@ describe('MasterWAMPServer', function () {
 				socketId: 'AYX',
 				type: MasterWAMPRequestSchema.id,
 				procedure: 'methodA',
-				signature: 0,
+				signature: '0',
 				data: {},
 			};
 
@@ -58,7 +58,7 @@ describe('MasterWAMPServer', function () {
 				data: {},
 				socketId: '127.0.0.1:8000',
 				workerId: 0,
-				signature: 0
+				signature: '0'
 			};
 
 

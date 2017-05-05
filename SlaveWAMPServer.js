@@ -5,6 +5,7 @@ const setWith = require('lodash.setwith');
 const get = require('lodash.get');
 const filter = require('lodash.filter');
 const WAMPServer = require('./WAMPServer');
+const WAMPClient = require('./WAMPClient');
 
 const schemas = require('./schemas');
 const v = new Validator();
@@ -23,7 +24,7 @@ class SlaveWAMPServer extends WAMPServer {
 		this.config = {};
 
 		this.worker.on('masterMessage', response => {
-			// console.log('\x1b[36m%s\x1b[0m', 'SlaveWAMPServer --- ON MASTRER MSG --- ', response);
+			console.log('\x1b[36m%s\x1b[0m', 'SlaveWAMPServer --- ON MASTRER MSG --- ', response);
 			if (schemas.isValid(response, schemas.MasterWAMPResponseSchema) || schemas.isValid(response, schemas.WAMPResponseSchema)) {
 				const socket = this.sockets[response.socketId];
 				if (socket) {
@@ -70,8 +71,9 @@ class SlaveWAMPServer extends WAMPServer {
 			data,
 			socketId,
 			workerId: this.worker.id,
-			signature: (new Date()).getTime()
+			signature: WAMPClient.generateSignature(get(this.interProcessRPC, `${socketId}.${procedure}`, {}))
 		});
+		console.log('\x1b[36m%s\x1b[0m', 'SlaveWAMPServer --- SEND TO MASTER --- ', req);
 		this.worker.sendToMaster(req);
 
 		this.saveCall(req, cb);
@@ -79,13 +81,12 @@ class SlaveWAMPServer extends WAMPServer {
 	}
 
 	processWAMPRequest(request, socket) {
+		console.log('\x1b[36m%s\x1b[0m', 'SlaveWAMPServer --- processWAMPRequest --- ', request, socket.id);
 		if (v.validate(request, schemas.WAMPRequestSchema).valid) {
 			request.socketId = socket.id;
 			request.workerId = this.worker.id;
 			request.type = schemas.MasterWAMPRequestSchema.id;
 			this.worker.sendToMaster(request);
-		} else {
-
 		}
 	}
 
