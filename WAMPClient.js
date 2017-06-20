@@ -13,7 +13,17 @@ class WAMPClient {
 	}
 
 	static generateSignature(procedureCalls) {
-		return `${(new Date()).getTime()}_${(Object.keys(procedureCalls).length - 1) + 1}`;
+		const generateNonce = () => Math.random() * 100000 | 0;
+
+		const tryGenerateSignature = (nonce) => {
+			const signatureCandidate = `${(new Date()).getTime()}_${nonce}`;
+			if (!procedureCalls[signatureCandidate]) {
+				return signatureCandidate;
+			}
+			return tryGenerateSignature(generateNonce());
+		};
+
+		return tryGenerateSignature(generateNonce());
 	}
 
 

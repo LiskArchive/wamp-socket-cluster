@@ -38,7 +38,7 @@ class SlaveWAMPServer extends WAMPServer {
 			else if (schemas.isValid(response, schemas.InterProcessRPCResponseSchema)) {
 				const callback = this.getCall(response);
 				if (callback) {
-					callback(response.err, response.data);
+					callback(response.error, response.data);
 					this.deleteCall(response);
 				}
 			}
@@ -67,7 +67,6 @@ class SlaveWAMPServer extends WAMPServer {
 		this.worker.sendToMaster(req);
 
 		this.saveCall(req, cb);
-
 	}
 
 	processWAMPRequest(request, socket) {
