@@ -82,7 +82,13 @@ class SlaveWAMPServer extends WAMPServer {
 		return delete this.interProcessRPC[socketId];
 	}
 
-	normalizeRequest(request) {
+	normalizeRequest(request = {}) {
+		if (!request.procedure || typeof request.procedure !== 'string') {
+			throw new Error('Wrong format of requested procedure: ' + request.procedure);
+		}
+		if (!request.socketId || typeof request.socketId !== 'string') {
+			throw new Error('Wrong format of requested socket id: ' + request.socketId);
+		}
 		request.procedure = request.procedure.replace(/\./g, '');
 		request.socketId = request.socketId.replace(/\./g, '');
 		return request;
