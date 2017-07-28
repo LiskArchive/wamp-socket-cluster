@@ -21,6 +21,7 @@ class SlaveWAMPServer extends WAMPServer {
 		this.worker = worker;
 		this.sockets = worker.scServer.clients;
 		this.interProcessRPC = {};
+		this.endpoints.slaveRpc = {};
 		this.config = {};
 
 		this.worker.on('masterMessage', response => {
@@ -71,10 +72,15 @@ class SlaveWAMPServer extends WAMPServer {
 
 	processWAMPRequest(request, socket) {
 		if (v.validate(request, schemas.WAMPRequestSchema).valid) {
-			request.socketId = socket.id;
-			request.workerId = this.worker.id;
-			request.type = schemas.MasterWAMPRequestSchema.id;
-			this.worker.sendToMaster(request);
+			if (this.endpoints.slaveRpc[request.procedure] && typeof this.endpoints.slaveRpc[request.procedure] === 'function') {
+				return this.endpoints.slaveRpc[request.procedure](request, this.reply.bind(this, socket, request));
+			}
+			else {
+				request.socketId = socket.id;
+				request.workerId = this.worker.id;
+				request.type = schemas.MasterWAMPRequestSchema.id;
+				this.worker.sendToMaster(request);
+			}
 		}
 	}
 
@@ -104,6 +110,20 @@ class SlaveWAMPServer extends WAMPServer {
 
 	deleteCall(request) {
 		return delete this.interProcessRPC[request.socketId][request.procedure][request.signature];
+	}
+
+	/**
+	 * @param {Map<RPCEndpoint>} endpoints
+	 */
+	reassignRPCSlaveEndpoints(endpoints) {
+		this.endpoints.slaveRpc = endpoints;
+	}
+
+	/**
+	 * @param {Map<RPCEndpoint>} endpoints
+	 */
+	registerRPCSlaveEndpoints(endpoints) {
+		this.endpoints.slaveRpc = Object.assign(this.endpoints.slaveRpc, endpoints);
 	}
 }
 
