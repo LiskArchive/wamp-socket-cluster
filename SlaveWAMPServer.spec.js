@@ -114,22 +114,22 @@ describe('SlaveWAMPServer', function () {
 			expect(normalizeRequest(validRequest)).to.eql(validRequest);
 		});
 
-		it('should return remove dot from socketId', function () {
+		it('should remove dot from socketId', function () {
 			validRequest.socketId = 'a.b';
 			expect(normalizeRequest(validRequest).socketId).to.equal('ab');
 		});
 
-		it('should return remove dots from socketId', function () {
+		it('should remove dots from socketId', function () {
 			validRequest.socketId = 'a.b.c.d.e';
 			expect(normalizeRequest(validRequest).socketId).to.equal('abcde');
 		});
 
-		it('should return remove dot from procedure', function () {
+		it('should remove dot from procedure', function () {
 			validRequest.procedure = 'a.b';
 			expect(normalizeRequest(validRequest).procedure).to.equal('ab');
 		});
 
-		it('should return remove dots from procedure', function () {
+		it('should remove dots from procedure', function () {
 			validRequest.procedure = 'a.b.c.d.e';
 			expect(normalizeRequest(validRequest).procedure).to.equal('abcde');
 		});
@@ -201,6 +201,22 @@ describe('SlaveWAMPServer', function () {
 		it('should invoke procedure on SlaveWAMPServer if reassigned before', function () {
 			const endpoint = {procedureName: sinon.spy()};
 			slaveWampServer.reassignRPCSlaveEndpoints(endpoint);
+			slaveWampServer.processWAMPRequest(validRequest, socketMock);
+			expect(endpoint.procedureName.calledOnce).to.be.ok;
+			expect(endpoint.procedureName.calledWith({
+				'procedure': 'procedureName',
+				'type': '/WAMPRequest',
+				'socketId': 'validSocketId',
+				'workerId': 'validWorkerId'
+			})).to.be.ok;
+
+			expect(workerMock.sendToMaster.called).not.to.be.ok;
+		});
+
+		it('should invoke procedure on SlaveWAMPServer if it was registered on both WAMPServer and SlaveWAMPServer', function () {
+			const endpoint = {procedureName: sinon.spy()};
+			slaveWampServer.registerRPCEndpoints(endpoint);
+			slaveWampServer.registerRPCSlaveEndpoints(endpoint);
 			slaveWampServer.processWAMPRequest(validRequest, socketMock);
 			expect(endpoint.procedureName.calledOnce).to.be.ok;
 			expect(endpoint.procedureName.calledWith({
