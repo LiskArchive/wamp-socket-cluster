@@ -72,12 +72,12 @@ class SlaveWAMPServer extends WAMPServer {
 
 	processWAMPRequest(request, socket) {
 		if (v.validate(request, schemas.WAMPRequestSchema).valid) {
+			request.socketId = socket.id;
+			request.workerId = this.worker.id;
 			if (this.endpoints.slaveRpc[request.procedure] && typeof this.endpoints.slaveRpc[request.procedure] === 'function') {
 				return this.endpoints.slaveRpc[request.procedure](request, this.reply.bind(this, socket, request));
 			}
 			else {
-				request.socketId = socket.id;
-				request.workerId = this.worker.id;
 				request.type = schemas.MasterWAMPRequestSchema.id;
 				this.worker.sendToMaster(request);
 			}

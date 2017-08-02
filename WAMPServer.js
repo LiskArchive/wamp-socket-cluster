@@ -57,7 +57,7 @@ class WAMPServer {
 			return this.endpoints.event[request.procedure](request.data);
 		}
 		else {
-			return this.reply(socket, request, `procedure ${request.procedure} not registered on WAMPServer: ` + JSON.stringify(Object.keys(this.endpoints.rpc)), null);
+			return this.reply(socket, request, `procedure ${request.procedure} not registered on WAMPServer. Available commands: ` + JSON.stringify(Object.keys(this.endpoints.rpc)), null);
 		}
 	}
 

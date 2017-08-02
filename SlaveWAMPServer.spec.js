@@ -136,4 +136,81 @@ describe('SlaveWAMPServer', function () {
 
 	});
 
+	describe('processWAMPRequest', function () {
+
+		const workerMock = {
+			id: 'validWorkerId',
+			on: sinon.spy(),
+			sendToMaster: sinon.spy(),
+			scServer: {
+				clients: []
+			}
+		};
+
+		const socketMock = {
+			id: 'validSocketId',
+			on: sinon.spy(),
+			send: sinon.spy()
+		};
+
+		const slaveWampServer = new SlaveWAMPServer(workerMock);
+
+		let validRequest, validSlaveToMasterRequest;
+
+		beforeEach(function () {
+			workerMock.on.reset();
+			workerMock.sendToMaster.reset();
+
+			socketMock.on.reset();
+			socketMock.send.reset();
+
+			validRequest = {
+				'procedure': 'procedureName',
+				'type': '/WAMPRequest',
+			};
+
+			validSlaveToMasterRequest = {
+				'procedure': 'procedureName',
+				'type': '/MasterWAMPRequest',
+				'socketId': 'validSocketId',
+				'workerId': 'validWorkerId'
+			};
+		});
+
+		it('should pass request forward to master if procedure is not registered in SlaveWAMPServer', function () {
+			slaveWampServer.processWAMPRequest(validRequest, socketMock);
+			expect(workerMock.sendToMaster.calledOnce).to.be.ok;
+			expect(workerMock.sendToMaster.calledWith(validSlaveToMasterRequest)).to.be.ok;
+		});
+
+		it('should invoke procedure on SlaveWAMPServer if registered before', function () {
+			const endpoint = {procedureName: sinon.spy()};
+			slaveWampServer.registerRPCSlaveEndpoints(endpoint);
+			slaveWampServer.processWAMPRequest(validRequest, socketMock);
+			expect(endpoint.procedureName.calledOnce).to.be.ok;
+			expect(endpoint.procedureName.calledWith({
+				'procedure': 'procedureName',
+				'type': '/WAMPRequest',
+				'socketId': 'validSocketId',
+				'workerId': 'validWorkerId'
+			})).to.be.ok;
+
+			expect(workerMock.sendToMaster.called).not.to.be.ok;
+		});
+
+		it('should invoke procedure on SlaveWAMPServer if reassigned before', function () {
+			const endpoint = {procedureName: sinon.spy()};
+			slaveWampServer.reassignRPCSlaveEndpoints(endpoint);
+			slaveWampServer.processWAMPRequest(validRequest, socketMock);
+			expect(endpoint.procedureName.calledOnce).to.be.ok;
+			expect(endpoint.procedureName.calledWith({
+				'procedure': 'procedureName',
+				'type': '/WAMPRequest',
+				'socketId': 'validSocketId',
+				'workerId': 'validWorkerId'
+			})).to.be.ok;
+
+			expect(workerMock.sendToMaster.called).not.to.be.ok;
+		});
+	});
 });
