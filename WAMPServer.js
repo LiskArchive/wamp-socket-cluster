@@ -51,7 +51,6 @@ class WAMPServer {
 	 */
 	processWAMPRequest(request, socket) {
 		if (this.endpoints.rpc[request.procedure] && typeof this.endpoints.rpc[request.procedure] === 'function') {
-
 			return this.endpoints.rpc[request.procedure](request.data, this.reply.bind(this, socket, request));
 		}
 		else if (this.endpoints.event[request.procedure] && typeof this.endpoints.event[request.procedure] === 'function') {
