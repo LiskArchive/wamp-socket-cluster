@@ -103,7 +103,7 @@ describe('WAMPClient', function () {
 				const procedure = 'procedureA';
 
 				for (let i = 0; i <= WAMPClient.MAX_CALLS_ALLOWED; i += 1) {
-					wampSocket.wampSend(procedure);
+					wampSocket.wampSend(procedure).catch(() => {});
 				}
 
 				expect(Object.keys(wampClient.callsResolvers[procedure]).length).equal(WAMPClient.MAX_CALLS_ALLOWED);
@@ -149,9 +149,7 @@ describe('WAMPClient', function () {
 			describe('resolving responses', function () {
 
 				before(function () {
-					sinon.stub(Math, "random", function(){
-						return 0;
-					});
+					sinon.stub(Math, "random").returns(0);
 				});
 
 
