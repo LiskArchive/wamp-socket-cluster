@@ -93,7 +93,6 @@ describe('WAMPServer', function () {
 		});
 	});
 
-
 	describe('processWAMPRequest', function () {
 
 		it('should throw an error if no while attempt to invoke not registered procedure', function () {
