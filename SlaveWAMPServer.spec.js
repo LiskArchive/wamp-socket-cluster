@@ -217,4 +217,70 @@ describe('SlaveWAMPServer', () => {
 			expect(workerMock.sendToMaster.called).not.to.be.ok();
 		});
 	});
+
+	describe('getCall', function () {
+
+		let validSocketId;
+		let validProcedure;
+		let validSignature;
+		let validRequest;
+		let validCb;
+
+		beforeEach(function () {
+			validSocketId = 'validSocketId';
+			validProcedure = 'validProcedure';
+			validSignature = 'validSignature';
+			validRequest = {
+				socketId: validSocketId,
+				procedure: validProcedure,
+				signature: validSignature
+			};
+			validCb = () => {};
+		});
+
+		it('should return false when invoked without arguments', function () {
+			expect(slaveWampServer.getCall()).to.be.not.ok;
+		});
+
+		it('should return false when a call does not exist', function () {
+			expect(slaveWampServer.getCall(validRequest)).to.be.not.ok;
+		});
+
+		describe('when call exists', function () {
+
+			beforeEach(function () {
+				slaveWampServer.interProcessRPC = {
+					[validSocketId]: {
+						[validProcedure]: {
+							[validSignature]: () => {}
+						}
+					}
+				};
+			});
+
+			it('should return false when invoked without socket id', function () {
+				delete validRequest.socketId;
+				expect(slaveWampServer.getCall()).to.be.not.ok;
+			});
+
+			it('should return false when invoked without procedure', function () {
+				delete validRequest.procedure;
+				expect(slaveWampServer.getCall()).to.be.not.ok;
+			});
+
+			it('should return false when invoked without signature', function () {
+				delete validRequest.signature;
+				expect(slaveWampServer.getCall()).to.be.not.ok;
+			});
+
+			it('should return false when invoked without signature', function () {
+				delete validRequest.signature;
+				expect(slaveWampServer.getCall()).to.be.not.ok;
+			});
+
+			it('should return true when invoked with valid request', function () {
+				expect(slaveWampServer.getCall(validRequest)).to.be.ok;
+			});
+		});
+	});
 });
