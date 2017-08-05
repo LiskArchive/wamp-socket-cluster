@@ -1,62 +1,61 @@
-'use strict';
+
 
 const chai = require('chai');
 const sinon = require('sinon');
 const SlaveWAMPServer = require('./SlaveWAMPServer');
+
 const expect = chai.expect;
 
-describe('SlaveWAMPServer', function () {
-
-	describe('constructor', function () {
+describe('SlaveWAMPServer', () => {
+	describe('constructor', () => {
 		let fakeWorker;
 
-		beforeEach(function () {
+		beforeEach(() => {
 			fakeWorker = {
 				id: 0,
 				on: sinon.spy(),
 				scServer: {
-					clients: {}
-				}
+					clients: {},
+				},
 			};
 		});
 
-		it('create SlaveWAMPServer with worker field', function () {
+		it('create SlaveWAMPServer with worker field', () => {
 			const slaveWAMPServer = new SlaveWAMPServer(fakeWorker);
 			expect(slaveWAMPServer).to.have.property('worker').to.be.a('object').and.to.have.property('id').equal(0);
 		});
 
-		it('create SlaveWAMPServer with RPCCalls field', function () {
+		it('create SlaveWAMPServer with RPCCalls field', () => {
 			const slaveWAMPServer = new SlaveWAMPServer(fakeWorker);
 			expect(slaveWAMPServer).to.have.property('interProcessRPC').to.be.a('object').and.to.be.empty;
 		});
 
-		it('create SlaveWAMPServer with sockets field', function () {
+		it('create SlaveWAMPServer with sockets field', () => {
 			const slaveWAMPServer = new SlaveWAMPServer(fakeWorker);
 			expect(slaveWAMPServer).to.have.property('sockets').to.be.a('object').and.to.be.empty;
 		});
 
-		it('create SlaveWAMPServer with sockets field', function () {
+		it('create SlaveWAMPServer with sockets field', () => {
 			const slaveWAMPServer = new SlaveWAMPServer(fakeWorker);
 			expect(slaveWAMPServer).to.have.property('sockets').to.be.a('object').and.to.be.empty;
 		});
 
-		it('create SlaveWAMPServer and register event listener from master process', function () {
+		it('create SlaveWAMPServer and register event listener from master process', () => {
 			new SlaveWAMPServer(fakeWorker);
 			expect(fakeWorker.on.calledOnce).to.be.ok;
 			expect(fakeWorker.on.calledWith('masterMessage')).to.be.ok;
 		});
 	});
 
-	describe('normalizeRequest', function () {
-
+	describe('normalizeRequest', () => {
 		let validRequest;
 
 		const fakeWorker = {
 			id: 0,
 			on: sinon.spy(),
 			scServer: {
-				clients: {}
-			}
+				clients: {},
+			},
 		};
 
 		const normalizeRequest = new SlaveWAMPServer(fakeWorker).normalizeRequest;
@@ -68,96 +67,95 @@ describe('SlaveWAMPServer', function () {
 			};
 		});
 
-		it('should throw an exception when invoked with empty object', function () {
+		it('should throw an exception when invoked with empty object', () => {
 			expect(normalizeRequest.bind(null, {})).to.throw;
 		});
 
-		it('should throw an exception when invoked with undefined', function () {
+		it('should throw an exception when invoked with undefined', () => {
 			expect(normalizeRequest.bind(null, undefined)).to.throw;
 		});
 
-		it('should throw an exception when invoked with null', function () {
+		it('should throw an exception when invoked with null', () => {
 			expect(normalizeRequest.bind(null, null)).to.throw;
 		});
 
-		it('should throw an exception when invoked without socketId', function () {
+		it('should throw an exception when invoked without socketId', () => {
 			delete validRequest.socketId;
 			expect(normalizeRequest.bind(null, validRequest)).to.throw('Wrong format of requested socket id: undefined');
 		});
 
-		it('should throw an exception when invoked without procedure', function () {
+		it('should throw an exception when invoked without procedure', () => {
 			delete validRequest.procedure;
 			expect(normalizeRequest.bind(null, validRequest)).to.throw('Wrong format of requested procedure: undefined');
 		});
 
-		it('should throw an exception when invoked with socketId as number', function () {
+		it('should throw an exception when invoked with socketId as number', () => {
 			validRequest.socketId = 1;
 			expect(normalizeRequest.bind(null, validRequest)).to.throw('Wrong format of requested socket id: 1');
 		});
 
-		it('should throw an exception when invoked with socketId as object', function () {
+		it('should throw an exception when invoked with socketId as object', () => {
 			validRequest.socketId = {};
 			expect(normalizeRequest.bind(null, validRequest)).to.throw('Wrong format of requested socket id: [object Object]');
 		});
 
-		it('should throw an exception when invoked with procedure as number', function () {
+		it('should throw an exception when invoked with procedure as number', () => {
 			validRequest.procedure = 1;
 			expect(normalizeRequest.bind(null, validRequest)).to.throw('Wrong format of requested procedure: 1');
 		});
 
-		it('should throw an exception when invoked with procedure as object', function () {
+		it('should throw an exception when invoked with procedure as object', () => {
 			validRequest.procedure = {};
 			expect(normalizeRequest.bind(null, validRequest)).to.throw('Wrong format of requested procedure: [object Object]');
 		});
 
-		it('should return unchanged object for valid request', function () {
+		it('should return unchanged object for valid request', () => {
 			expect(normalizeRequest(validRequest)).to.eql(validRequest);
 		});
 
-		it('should remove dot from socketId', function () {
+		it('should remove dot from socketId', () => {
 			validRequest.socketId = 'a.b';
 			expect(normalizeRequest(validRequest).socketId).to.equal('ab');
 		});
 
-		it('should remove dots from socketId', function () {
+		it('should remove dots from socketId', () => {
 			validRequest.socketId = 'a.b.c.d.e';
 			expect(normalizeRequest(validRequest).socketId).to.equal('abcde');
 		});
 
-		it('should remove dot from procedure', function () {
+		it('should remove dot from procedure', () => {
 			validRequest.procedure = 'a.b';
 			expect(normalizeRequest(validRequest).procedure).to.equal('ab');
 		});
 
-		it('should remove dots from procedure', function () {
+		it('should remove dots from procedure', () => {
 			validRequest.procedure = 'a.b.c.d.e';
 			expect(normalizeRequest(validRequest).procedure).to.equal('abcde');
 		});
-
 	});
 
-	describe('processWAMPRequest', function () {
-
+	describe('processWAMPRequest', () => {
 		const workerMock = {
 			id: 'validWorkerId',
 			on: sinon.spy(),
 			sendToMaster: sinon.spy(),
 			scServer: {
-				clients: []
-			}
+				clients: [],
+			},
 		};
 
 		const socketMock = {
 			id: 'validSocketId',
 			on: sinon.spy(),
-			send: sinon.spy()
+			send: sinon.spy(),
 		};
 
 		const slaveWampServer = new SlaveWAMPServer(workerMock);
 
-		let validRequest, validSlaveToMasterRequest;
+		let validRequest;
+		let	validSlaveToMasterRequest;
 
-		beforeEach(function () {
+		beforeEach(() => {
 			workerMock.on.reset();
 			workerMock.sendToMaster.reset();
 
@@ -165,65 +163,65 @@ describe('SlaveWAMPServer', function () {
 			socketMock.send.reset();
 
 			validRequest = {
-				'procedure': 'procedureName',
-				'type': '/WAMPRequest',
+				procedure: 'procedureName',
+				type: '/WAMPRequest',
 			};
 
 			validSlaveToMasterRequest = {
-				'procedure': 'procedureName',
-				'type': '/MasterWAMPRequest',
-				'socketId': 'validSocketId',
-				'workerId': 'validWorkerId'
+				procedure: 'procedureName',
+				type: '/MasterWAMPRequest',
+				socketId: 'validSocketId',
+				workerId: 'validWorkerId',
 			};
 		});
 
-		it('should pass request forward to master if procedure is not registered in SlaveWAMPServer', function () {
+		it('should pass request forward to master if procedure is not registered in SlaveWAMPServer', () => {
 			slaveWampServer.processWAMPRequest(validRequest, socketMock);
 			expect(workerMock.sendToMaster.calledOnce).to.be.ok;
 			expect(workerMock.sendToMaster.calledWith(validSlaveToMasterRequest)).to.be.ok;
 		});
 
-		it('should invoke procedure on SlaveWAMPServer if registered before', function () {
-			const endpoint = {procedureName: sinon.spy()};
+		it('should invoke procedure on SlaveWAMPServer if registered before', () => {
+			const endpoint = { procedureName: sinon.spy() };
 			slaveWampServer.registerRPCSlaveEndpoints(endpoint);
 			slaveWampServer.processWAMPRequest(validRequest, socketMock);
 			expect(endpoint.procedureName.calledOnce).to.be.ok;
 			expect(endpoint.procedureName.calledWith({
-				'procedure': 'procedureName',
-				'type': '/WAMPRequest',
-				'socketId': 'validSocketId',
-				'workerId': 'validWorkerId'
+				procedure: 'procedureName',
+				type: '/WAMPRequest',
+				socketId: 'validSocketId',
+				workerId: 'validWorkerId',
 			})).to.be.ok;
 
 			expect(workerMock.sendToMaster.called).not.to.be.ok;
 		});
 
-		it('should invoke procedure on SlaveWAMPServer if reassigned before', function () {
-			const endpoint = {procedureName: sinon.spy()};
+		it('should invoke procedure on SlaveWAMPServer if reassigned before', () => {
+			const endpoint = { procedureName: sinon.spy() };
 			slaveWampServer.reassignRPCSlaveEndpoints(endpoint);
 			slaveWampServer.processWAMPRequest(validRequest, socketMock);
 			expect(endpoint.procedureName.calledOnce).to.be.ok;
 			expect(endpoint.procedureName.calledWith({
-				'procedure': 'procedureName',
-				'type': '/WAMPRequest',
-				'socketId': 'validSocketId',
-				'workerId': 'validWorkerId'
+				procedure: 'procedureName',
+				type: '/WAMPRequest',
+				socketId: 'validSocketId',
+				workerId: 'validWorkerId',
 			})).to.be.ok;
 
 			expect(workerMock.sendToMaster.called).not.to.be.ok;
 		});
 
-		it('should invoke procedure on SlaveWAMPServer if it was registered on both WAMPServer and SlaveWAMPServer', function () {
-			const endpoint = {procedureName: sinon.spy()};
+		it('should invoke procedure on SlaveWAMPServer if it was registered on both WAMPServer and SlaveWAMPServer', () => {
+			const endpoint = { procedureName: sinon.spy() };
 			slaveWampServer.registerRPCEndpoints(endpoint);
 			slaveWampServer.registerRPCSlaveEndpoints(endpoint);
 			slaveWampServer.processWAMPRequest(validRequest, socketMock);
 			expect(endpoint.procedureName.calledOnce).to.be.ok;
 			expect(endpoint.procedureName.calledWith({
-				'procedure': 'procedureName',
-				'type': '/WAMPRequest',
-				'socketId': 'validSocketId',
-				'workerId': 'validWorkerId'
+				procedure: 'procedureName',
+				type: '/WAMPRequest',
+				socketId: 'validSocketId',
+				workerId: 'validWorkerId',
 			})).to.be.ok;
 
 			expect(workerMock.sendToMaster.called).not.to.be.ok;

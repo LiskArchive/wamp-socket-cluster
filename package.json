@@ -7,7 +7,9 @@
     "test": "mocha $(find . -name '*.spec.js' ! -ipath '*node_modules*')",
     "build": "npm run build:src && npm run build:bundle",
     "build:src": "webpack --optimize-minimize",
-    "build:bundle": "BUNDLE=true webpack --optimize-minimize"
+    "build:bundle": "BUNDLE=true webpack --optimize-minimize",
+    "eslint": "eslint eslint **.js",
+    "eslint:fix": "eslint eslint --fix **.js"
   },
   "author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
   "license": "GPLv3",
@@ -22,6 +24,10 @@
     "babel-loader": "^6.4.1",
     "babel-preset-env": "^1.2.2",
     "chai": "^3.5.0",
+    "eslint": "^4.3.0",
+    "eslint-config-airbnb-base": "^11.3.1",
+    "eslint-config-lisk-base": "^0.1.0",
+    "eslint-plugin-import": "^2.7.0",
     "mocha": "^3.2.0",
     "sinon": "^2.1.0",
     "socketcluster": "^5.9.0",

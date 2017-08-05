@@ -1,10 +1,9 @@
-"use strict";
+
 
 const get = require('lodash.get');
 const schemas = require('./schemas');
 
 class WAMPClient {
-
 	/**
 	 * @return {number}
 	 */
@@ -13,6 +12,7 @@ class WAMPClient {
 	}
 
 	static generateSignature(procedureCalls) {
+		/* eslint no-bitwise: ["error", { "int32Hint": true }] */
 		const generateNonce = () => Math.random() * 100000 | 0;
 
 		const tryGenerateSignature = (nonce) => {
@@ -39,11 +39,16 @@ class WAMPClient {
 		if (socket.wampSend && socket.listeners('raw').length) {
 			return socket;
 		}
-		socket.on('raw', result => {
+		const wampSocket = socket;
+		wampSocket.on('raw', (result) => {
 			if (schemas.isValid(result, schemas.WAMPResponseSchema)) {
 				const resolvers = get(this.callsResolvers, `${result.procedure}.${result.signature}`);
 				if (resolvers) {
-					result.success ? resolvers.success(result.data) : resolvers.fail(result.error);
+					if (result.success) {
+						resolvers.success(result.data);
+					} else {
+						resolvers.fail(result.error);
+					}
 					delete this.callsResolvers[result.procedure][result.signature];
 				} else {
 					throw new Error(`Unable to find resolving function for procedure ${result.procedure} with signature ${result.signature}`);
@@ -57,26 +62,25 @@ class WAMPClient {
 		 * @param {*} data
 		 * @returns {Promise}
 		 */
-		socket.wampSend = (procedure, data) => {
-			return new Promise((success, fail) => {
-				if (!this.callsResolvers[procedure]) {
-					this.callsResolvers[procedure] = {};
-				}
-				if (Object.keys(this.callsResolvers[procedure]).length >= WAMPClient.MAX_CALLS_ALLOWED) {
-					return fail(`No more than ${WAMPClient.MAX_CALLS_ALLOWED} calls allowed`);
-				}
+		wampSocket.wampSend = (procedure, data) => new Promise((success, fail) => {
+			if (!this.callsResolvers[procedure]) {
+				this.callsResolvers[procedure] = {};
+			}
+			if (Object.keys(this.callsResolvers[procedure]).length >= WAMPClient.MAX_CALLS_ALLOWED) {
+				fail(`No more than ${WAMPClient.MAX_CALLS_ALLOWED} calls allowed`);
+			} else {
 				const signature = WAMPClient.generateSignature(this.callsResolvers[procedure]);
-				this.callsResolvers[procedure][signature] = {success, fail};
+				this.callsResolvers[procedure][signature] = { success, fail };
 
 				socket.send(JSON.stringify({
 					data,
 					procedure,
 					signature,
-					type: schemas.WAMPRequestSchema.id
+					type: schemas.WAMPRequestSchema.id,
 				}));
-			});
-		};
-		return socket;
+			}
+		});
+		return wampSocket;
 	}
 }
 
