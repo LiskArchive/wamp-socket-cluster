@@ -40,7 +40,7 @@ class MasterWAMPServer extends WAMPServer {
 	 * @param {*} data
 	 */
 	reply(socket, request, error, data) {
-		const payload = this.createResponsePayload(request, error, data);
+		const payload = MasterWAMPServer.createResponsePayload(request, error, data);
 		return this.socketCluster.sendToWorker(request.workerId, payload);
 	}
 }

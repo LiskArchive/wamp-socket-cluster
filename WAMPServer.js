@@ -1,5 +1,3 @@
-
-
 const schemas = require('./schemas');
 
 class WAMPServer {
@@ -9,7 +7,6 @@ class WAMPServer {
 			event: {},
 		};
 	}
-
 
 	static createResponsePayload(request, error, data) {
 		return Object.assign({}, request, {
@@ -27,8 +24,12 @@ class WAMPServer {
 	upgradeToWAMP(socket) {
 		// register RPC endpoints
 		socket.on('raw', (request) => {
-			const parsedRequest = JSON.parse(request);
-			if (schemas.isValid(parsedRequest, schemas.WAMPRequestSchema)) {
+			try {
+				request = JSON.parse(request);
+			} catch (ex) {
+				return;
+			}
+			if (schemas.isValid(request, schemas.WAMPRequestSchema)) {
 				this.processWAMPRequest(request, socket);
 			}
 		});
@@ -73,7 +74,7 @@ class WAMPServer {
 	 * @param {*} data
 	 */
 	reply(socket, request, error, data) {
-		const payload = this.createResponsePayload(request, error, data);
+		const payload = WAMPServer.createResponsePayload(request, error, data);
 		socket.send(JSON.stringify(payload));
 	}
 
