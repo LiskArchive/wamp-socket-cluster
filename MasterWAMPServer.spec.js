@@ -1,4 +1,5 @@
-
+/* eslint no-unused-expressions: 0 */
+// https://github.com/jonathanglasmeyer/graphql-sequelize/commit/00814cac3aa9fa6d20aed38df838dcbc4b4ab9b4
 
 const chai = require('chai');
 const sinon = require('sinon');
@@ -25,6 +26,7 @@ describe('MasterWAMPServer', () => {
 
 
 		it('should start listening on "workerStart"', () => {
+			/* eslint-disable no-new */
 			new MasterWAMPServer(fakeSCServer);
 			expect(fakeSCServer.on.called).to.be.ok;
 			expect(fakeSCServer.on.calledWith('workerStart')).to.be.ok;
@@ -32,6 +34,7 @@ describe('MasterWAMPServer', () => {
 		});
 
 		it('should start listening on "workerMessage"', () => {
+			/* eslint-disable no-new */
 			new MasterWAMPServer(fakeSCServer);
 			expect(fakeSCServer.on.called).to.be.ok;
 			expect(fakeSCServer.on.calledWith('workerMessage')).to.be.ok;

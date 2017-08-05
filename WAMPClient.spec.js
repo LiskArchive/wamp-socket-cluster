@@ -1,3 +1,6 @@
+/* eslint no-unused-expressions: 0 */
+// https://github.com/jonathanglasmeyer/graphql-sequelize/commit/00814cac3aa9fa6d20aed38df838dcbc4b4ab9b4
+
 const chai = require('chai');
 const sinon = require('sinon');
 
@@ -98,7 +101,8 @@ describe('WAMPClient', () => {
 					wampSocket.wampSend(procedure).catch(() => {});
 				}
 
-				expect(Object.keys(wampClient.callsResolvers[procedure]).length).equal(WAMPClient.MAX_CALLS_ALLOWED);
+				expect(Object.keys(wampClient.callsResolvers[procedure]).length)
+					.equal(WAMPClient.MAX_CALLS_ALLOWED);
 			});
 
 			it('should invoke socket.emit function', () => {

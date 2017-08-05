@@ -1,4 +1,5 @@
-
+/* eslint no-unused-expressions: 0 */
+// https://github.com/jonathanglasmeyer/graphql-sequelize/commit/00814cac3aa9fa6d20aed38df838dcbc4b4ab9b4
 
 const chai = require('chai');
 const sinon = require('sinon');
@@ -41,6 +42,7 @@ describe('SlaveWAMPServer', () => {
 		});
 
 		it('create SlaveWAMPServer and register event listener from master process', () => {
+			/* eslint-disable no-new */
 			new SlaveWAMPServer(fakeWorker);
 			expect(fakeWorker.on.calledOnce).to.be.ok;
 			expect(fakeWorker.on.calledWith('masterMessage')).to.be.ok;
