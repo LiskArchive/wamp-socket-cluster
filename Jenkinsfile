@@ -17,6 +17,7 @@ def buildDependency() {
 def runTests() {
 	try {
 		sh '''#!/bin/bash
+		npm run eslint
 		npm run test
 		'''
 	} catch (err) {
