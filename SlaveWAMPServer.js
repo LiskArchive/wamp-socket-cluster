@@ -29,7 +29,7 @@ class SlaveWAMPServer extends WAMPServer {
 					delete response.socketId;
 					delete response.workerId;
 					response.type = schemas.WAMPRequestSchema.id;
-					this.reply(socket, response, response.error, response.data);
+					WAMPServer.reply(socket, response, response.error, response.data);
 				} else {
 					throw new Error('Socket that requested RPC call not found anymore');
 				}
@@ -82,7 +82,8 @@ class SlaveWAMPServer extends WAMPServer {
 			request.workerId = this.worker.id;
 			if (this.endpoints.slaveRpc[request.procedure] &&
 				typeof this.endpoints.slaveRpc[request.procedure] === 'function') {
-				this.endpoints.slaveRpc[request.procedure](request, this.reply.bind(this, socket, request));
+				this.endpoints.slaveRpc[request.procedure](request,
+					WAMPServer.reply.bind(this, socket, request));
 			} else {
 				request.type = schemas.MasterWAMPRequestSchema.id;
 				this.worker.sendToMaster(request);

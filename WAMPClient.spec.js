@@ -1,7 +1,6 @@
-/* eslint no-unused-expressions: 0 */
-// https://github.com/jonathanglasmeyer/graphql-sequelize/commit/00814cac3aa9fa6d20aed38df838dcbc4b4ab9b4
-
+/* eslint-env node, mocha */
 const chai = require('chai');
+const dirtyChai = require('dirty-chai');
 const sinon = require('sinon');
 
 const Validator = require('jsonschema').Validator;
@@ -12,8 +11,13 @@ const WAMPClient = require('./WAMPClient.js');
 const WAMPResponseSchema = require('./schemas').WAMPResponseSchema;
 
 const expect = chai.expect;
+chai.use(dirtyChai);
 
-sinon.useFakeTimers(new Date(2020, 1, 1).getTime());
+let clock;
+
+before(() => {
+	clock = sinon.useFakeTimers(new Date(2020, 1, 1).getTime());
+});
 
 describe('WAMPClient', () => {
 	let fakeSocket;
@@ -26,7 +30,7 @@ describe('WAMPClient', () => {
 	describe('constructor', () => {
 		it('create wampClient with callsResolver field', () => {
 			const wampClient = new WAMPClient();
-			expect(wampClient).to.have.property('callsResolvers').to.be.a('object').and.to.be.empty;
+			expect(wampClient).to.have.property('callsResolvers').to.be.a('object').and.to.be.empty();
 		});
 	});
 
@@ -109,7 +113,7 @@ describe('WAMPClient', () => {
 				const procedure = 'procedureA';
 
 				wampSocket.wampSend(procedure);
-				expect(wampSocket.send.calledOnce).to.be.ok;
+				expect(wampSocket.send.calledOnce).to.be.ok();
 			});
 
 			it('should invoke socket.emit function with passed arguments', () => {
@@ -127,7 +131,7 @@ describe('WAMPClient', () => {
 				const procedure = 'procedureA';
 
 				wampSocket.wampSend(procedure);
-				expect(wampSocket.on.calledOnce).to.be.ok;
+				expect(wampSocket.on.calledOnce).to.be.ok();
 			});
 
 			it('should invoke socket.on function with passed arguments', () => {
@@ -159,13 +163,13 @@ describe('WAMPClient', () => {
 						},
 					};
 
-					expect(v.validate(sampleWampServerResponse, WAMPResponseSchema).valid).to.be.ok;
+					expect(v.validate(sampleWampServerResponse, WAMPResponseSchema).valid).to.be.ok();
 
 					wampSocket.wampSend(procedure).then((data) => {
 						expect(data).equal(sampleWampServerResponse.data);
 						done();
 					}).catch((err) => {
-						expect(err).to.be.empty;
+						expect(err).to.be.empty();
 					});
 
 					const mockedServerResponse = wampSocket.on.getCalls()[0].args[1];
@@ -186,7 +190,7 @@ describe('WAMPClient', () => {
 					};
 
 					wampSocket.wampSend(procedure).then((data) => {
-						expect(data).to.be.empty;
+						expect(data).to.be.empty();
 					}).catch((err) => {
 						expect(err).equal(invalidWampServerResponse.error);
 						done();
@@ -246,4 +250,8 @@ describe('WAMPClient', () => {
 			});
 		});
 	});
+});
+
+after(() => {
+	clock.restore();
 });

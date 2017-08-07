@@ -1,12 +1,13 @@
-/* eslint no-unused-expressions: 0 */
-// https://github.com/jonathanglasmeyer/graphql-sequelize/commit/00814cac3aa9fa6d20aed38df838dcbc4b4ab9b4
-
+/* eslint-env node, mocha */
+/* eslint-disable no-new */
 const chai = require('chai');
+const dirtyChai = require('dirty-chai');
 const sinon = require('sinon');
 const MasterWAMPServer = require('./MasterWAMPServer');
 const MasterWAMPRequestSchema = require('./schemas').MasterWAMPRequestSchema;
 
 const expect = chai.expect;
+chai.use(dirtyChai);
 
 describe('MasterWAMPServer', () => {
 	describe('constructor', () => {
@@ -26,18 +27,16 @@ describe('MasterWAMPServer', () => {
 
 
 		it('should start listening on "workerStart"', () => {
-			/* eslint-disable no-new */
 			new MasterWAMPServer(fakeSCServer);
-			expect(fakeSCServer.on.called).to.be.ok;
-			expect(fakeSCServer.on.calledWith('workerStart')).to.be.ok;
+			expect(fakeSCServer.on.called).to.be.ok();
+			expect(fakeSCServer.on.calledWith('workerStart')).to.be.ok();
 			expect(fakeSCServer.on.getCalls()[0].args[1]).to.be.a('function');
 		});
 
 		it('should start listening on "workerMessage"', () => {
-			/* eslint-disable no-new */
 			new MasterWAMPServer(fakeSCServer);
-			expect(fakeSCServer.on.called).to.be.ok;
-			expect(fakeSCServer.on.calledWith('workerMessage')).to.be.ok;
+			expect(fakeSCServer.on.called).to.be.ok();
+			expect(fakeSCServer.on.calledWith('workerMessage')).to.be.ok();
 			expect(fakeSCServer.on.getCalls()[1].args[1]).to.be.a('function');
 		});
 
@@ -75,32 +74,32 @@ describe('MasterWAMPServer', () => {
 			it('should call processWAMPRequest when proper InterProcessRPCRequestSchema param passed to "workerMessage" handler', () => {
 				const onWorkerMessageHandler = fakeSCServer.on.getCalls()[1].args[1];
 				onWorkerMessageHandler(0, validInterProcessRPCRequest);
-				expect(masterWAMPServer.processWAMPRequest.called).to.be.ok;
+				expect(masterWAMPServer.processWAMPRequest.called).to.be.ok();
 			});
 
 			it('should call processWAMPRequest when proper MasterWAMPRequest param passed to "workerMessage" handler', () => {
 				const onWorkerMessageHandler = fakeSCServer.on.getCalls()[1].args[1];
 				onWorkerMessageHandler(0, validMasterWAMPRequest);
-				expect(masterWAMPServer.processWAMPRequest.called).to.be.ok;
+				expect(masterWAMPServer.processWAMPRequest.called).to.be.ok();
 			});
 
 			it('should call processWAMPRequest when proper MasterWAMPRequestSchema with received request', () => {
 				const onWorkerMessageHandler = fakeSCServer.on.getCalls()[1].args[1];
 				onWorkerMessageHandler(0, validMasterWAMPRequest);
-				expect(masterWAMPServer.processWAMPRequest.calledWith(validMasterWAMPRequest)).to.be.ok;
+				expect(masterWAMPServer.processWAMPRequest.calledWith(validMasterWAMPRequest)).to.be.ok();
 			});
 
 			it('should not call processWAMPRequest when invalid MasterWAMPRequestSchema passed', () => {
 				const onWorkerMessageHandler = fakeSCServer.on.getCalls()[1].args[1];
 				const invalidMasterWAMPCall = Object.assign({}, validMasterWAMPRequest, { type: 'invalid' });
 				onWorkerMessageHandler(0, invalidMasterWAMPCall);
-				expect(masterWAMPServer.processWAMPRequest.called).not.to.be.ok;
+				expect(masterWAMPServer.processWAMPRequest.called).not.to.be.ok();
 			});
 
 			it('should not call processWAMPRequest when empty request passed', () => {
 				const onWorkerMessageHandler = fakeSCServer.on.getCalls()[1].args[1];
 				onWorkerMessageHandler(0, null);
-				expect(masterWAMPServer.processWAMPRequest.called).not.to.be.ok;
+				expect(masterWAMPServer.processWAMPRequest.called).not.to.be.ok();
 			});
 		});
 	});

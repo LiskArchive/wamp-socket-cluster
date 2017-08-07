@@ -8,32 +8,33 @@
     "build": "npm run build:src && npm run build:bundle",
     "build:src": "webpack --optimize-minimize",
     "build:bundle": "BUNDLE=true webpack --optimize-minimize",
-    "eslint": "eslint eslint **.js",
-    "eslint:fix": "eslint eslint --fix **.js"
+    "eslint": "eslint **.js",
+    "eslint:fix": "eslint --fix **.js"
   },
   "author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
   "license": "GPLv3",
   "dependencies": {
-    "jsonschema": "^1.1.1",
-    "lodash.filter": "^4.6.0",
-    "lodash.get": "^4.4.2",
-    "lodash.setwith": "^4.3.2"
+    "jsonschema": "=1.1.1",
+    "lodash.filter": "=4.6.0",
+    "lodash.get": "=4.4.2",
+    "lodash.setwith": "=4.3.2"
   },
   "devDependencies": {
-    "babel-core": "^6.24.0",
-    "babel-loader": "^6.4.1",
-    "babel-preset-env": "^1.2.2",
-    "chai": "^3.5.0",
-    "eslint": "^4.3.0",
-    "eslint-config-airbnb-base": "^11.3.1",
-    "eslint-config-lisk-base": "^0.1.0",
-    "eslint-plugin-import": "^2.7.0",
-    "mocha": "^3.2.0",
-    "sinon": "^2.1.0",
-    "socketcluster": "^5.9.0",
-    "socketcluster-client": "^5.3.0",
-    "webpack": "^2.3.2",
-    "webpack-node-externals": "^1.5.4"
+    "babel-core": "=6.24.0",
+    "babel-loader": "=6.4.1",
+    "babel-preset-env": "=1.2.2",
+    "chai": "=3.5.0",
+    "dirty-chai": "=2.0.1",
+    "eslint": "=4.3.0",
+    "eslint-config-airbnb-base": "=11.3.1",
+    "eslint-config-lisk-base": "=0.1.0",
+    "eslint-plugin-import": "=2.7.0",
+    "mocha": "=3.2.0",
+    "sinon": "=2.1.0",
+    "socketcluster": "=5.9.0",
+    "socketcluster-client": "=5.3.0",
+    "webpack": "=2.3.2",
+    "webpack-node-externals": "=1.5.4"
   },
   "pre-commit": "build"
 }

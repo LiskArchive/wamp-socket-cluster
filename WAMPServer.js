@@ -8,6 +8,12 @@ class WAMPServer {
 		};
 	}
 
+	/**
+	 * @param {object} request
+	 * @param {Error} error
+	 * @param {*} data
+	 * @returns {object}
+	 */
 	static createResponsePayload(request, error, data) {
 		return Object.assign({}, request, {
 			success: !error,
@@ -18,18 +24,30 @@ class WAMPServer {
 	}
 
 	/**
+	 * @param {SocketCluster.Socket} socket
+	 * @param {WAMPRequestSchema} request
+	 * @param {*} error
+	 * @param {*} data
+	 */
+	static reply(socket, request, error, data) {
+		const payload = WAMPServer.createResponsePayload(request, error, data);
+		socket.send(JSON.stringify(payload));
+	}
+
+	/**
 	 * @param {object} socket - SocketCluster.Socket
 	 * @returns {object} wampSocket
 	 */
 	upgradeToWAMP(socket) {
 		// register RPC endpoints
 		socket.on('raw', (request) => {
+			let parsedRequest;
 			try {
-				request = JSON.parse(request);
+				parsedRequest = JSON.parse(request);
 			} catch (ex) {
 				return;
 			}
-			if (schemas.isValid(request, schemas.WAMPRequestSchema)) {
+			if (schemas.isValid(parsedRequest, schemas.WAMPRequestSchema)) {
 				this.processWAMPRequest(request, socket);
 			}
 		});
@@ -56,26 +74,15 @@ class WAMPServer {
 		if (this.endpoints.rpc[request.procedure] &&
 			typeof this.endpoints.rpc[request.procedure] === 'function') {
 			return this.endpoints.rpc[request.procedure](request.data,
-				this.reply.bind(this, socket, request));
+				WAMPServer.reply.bind(this, socket, request));
 		} else if (this.endpoints.event[request.procedure] &&
 			typeof this.endpoints.event[request.procedure] === 'function') {
 			return this.endpoints.event[request.procedure](request.data);
 		}
 
-		return this.reply(socket, request,
+		return WAMPServer.reply(socket, request,
 			`Procedure ${request.procedure} not registered on WAMPServer. 
 			Available commands: ${JSON.stringify(Object.keys(this.endpoints.rpc))}`, null);
-	}
-
-	/**
-	 * @param {SocketCluster.Socket} socket
-	 * @param {WAMPRequestSchema} request
-	 * @param {*} error
-	 * @param {*} data
-	 */
-	reply(socket, request, error, data) {
-		const payload = WAMPServer.createResponsePayload(request, error, data);
-		socket.send(JSON.stringify(payload));
 	}
 
 	/**

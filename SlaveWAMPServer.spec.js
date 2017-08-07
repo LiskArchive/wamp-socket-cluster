@@ -1,11 +1,12 @@
-/* eslint no-unused-expressions: 0 */
-// https://github.com/jonathanglasmeyer/graphql-sequelize/commit/00814cac3aa9fa6d20aed38df838dcbc4b4ab9b4
-
+/* eslint-env node, mocha */
+/* eslint-disable no-new */
 const chai = require('chai');
+const dirtyChai = require('dirty-chai');
 const sinon = require('sinon');
 const SlaveWAMPServer = require('./SlaveWAMPServer');
 
 const expect = chai.expect;
+chai.use(dirtyChai);
 
 describe('SlaveWAMPServer', () => {
 	describe('constructor', () => {
@@ -28,39 +29,29 @@ describe('SlaveWAMPServer', () => {
 
 		it('create SlaveWAMPServer with RPCCalls field', () => {
 			const slaveWAMPServer = new SlaveWAMPServer(fakeWorker);
-			expect(slaveWAMPServer).to.have.property('interProcessRPC').to.be.a('object').and.to.be.empty;
+			expect(slaveWAMPServer).to.have.property('interProcessRPC').to.be.a('object').and.to.be.empty();
 		});
 
 		it('create SlaveWAMPServer with sockets field', () => {
 			const slaveWAMPServer = new SlaveWAMPServer(fakeWorker);
-			expect(slaveWAMPServer).to.have.property('sockets').to.be.a('object').and.to.be.empty;
+			expect(slaveWAMPServer).to.have.property('sockets').to.be.a('object').and.to.be.empty();
 		});
 
 		it('create SlaveWAMPServer with sockets field', () => {
 			const slaveWAMPServer = new SlaveWAMPServer(fakeWorker);
-			expect(slaveWAMPServer).to.have.property('sockets').to.be.a('object').and.to.be.empty;
+			expect(slaveWAMPServer).to.have.property('sockets').to.be.a('object').and.to.be.empty();
 		});
 
 		it('create SlaveWAMPServer and register event listener from master process', () => {
-			/* eslint-disable no-new */
 			new SlaveWAMPServer(fakeWorker);
-			expect(fakeWorker.on.calledOnce).to.be.ok;
-			expect(fakeWorker.on.calledWith('masterMessage')).to.be.ok;
+			expect(fakeWorker.on.calledOnce).to.be.ok();
+			expect(fakeWorker.on.calledWith('masterMessage')).to.be.ok();
 		});
 	});
 
 	describe('normalizeRequest', () => {
 		let validRequest;
-
-		const fakeWorker = {
-			id: 0,
-			on: sinon.spy(),
-			scServer: {
-				clients: {},
-			},
-		};
-
-		const normalizeRequest = new SlaveWAMPServer(fakeWorker).normalizeRequest;
+		const normalizeRequest = SlaveWAMPServer.normalizeRequest;
 
 		beforeEach(() => {
 			validRequest = {
@@ -70,15 +61,15 @@ describe('SlaveWAMPServer', () => {
 		});
 
 		it('should throw an exception when invoked with empty object', () => {
-			expect(normalizeRequest.bind(null, {})).to.throw;
+			expect(normalizeRequest.bind(null, {})).to.throw();
 		});
 
 		it('should throw an exception when invoked with undefined', () => {
-			expect(normalizeRequest.bind(null, undefined)).to.throw;
+			expect(normalizeRequest.bind(null, undefined)).to.throw();
 		});
 
 		it('should throw an exception when invoked with null', () => {
-			expect(normalizeRequest.bind(null, null)).to.throw;
+			expect(normalizeRequest.bind(null, null)).to.throw();
 		});
 
 		it('should throw an exception when invoked without socketId', () => {
@@ -179,38 +170,38 @@ describe('SlaveWAMPServer', () => {
 
 		it('should pass request forward to master if procedure is not registered in SlaveWAMPServer', () => {
 			slaveWampServer.processWAMPRequest(validRequest, socketMock);
-			expect(workerMock.sendToMaster.calledOnce).to.be.ok;
-			expect(workerMock.sendToMaster.calledWith(validSlaveToMasterRequest)).to.be.ok;
+			expect(workerMock.sendToMaster.calledOnce).to.be.ok();
+			expect(workerMock.sendToMaster.calledWith(validSlaveToMasterRequest)).to.be.ok();
 		});
 
 		it('should invoke procedure on SlaveWAMPServer if registered before', () => {
 			const endpoint = { procedureName: sinon.spy() };
 			slaveWampServer.registerRPCSlaveEndpoints(endpoint);
 			slaveWampServer.processWAMPRequest(validRequest, socketMock);
-			expect(endpoint.procedureName.calledOnce).to.be.ok;
+			expect(endpoint.procedureName.calledOnce).to.be.ok();
 			expect(endpoint.procedureName.calledWith({
 				procedure: 'procedureName',
 				type: '/WAMPRequest',
 				socketId: 'validSocketId',
 				workerId: 'validWorkerId',
-			})).to.be.ok;
+			})).to.be.ok();
 
-			expect(workerMock.sendToMaster.called).not.to.be.ok;
+			expect(workerMock.sendToMaster.called).not.to.be.ok();
 		});
 
 		it('should invoke procedure on SlaveWAMPServer if reassigned before', () => {
 			const endpoint = { procedureName: sinon.spy() };
 			slaveWampServer.reassignRPCSlaveEndpoints(endpoint);
 			slaveWampServer.processWAMPRequest(validRequest, socketMock);
-			expect(endpoint.procedureName.calledOnce).to.be.ok;
+			expect(endpoint.procedureName.calledOnce).to.be.ok();
 			expect(endpoint.procedureName.calledWith({
 				procedure: 'procedureName',
 				type: '/WAMPRequest',
 				socketId: 'validSocketId',
 				workerId: 'validWorkerId',
-			})).to.be.ok;
+			})).to.be.ok();
 
-			expect(workerMock.sendToMaster.called).not.to.be.ok;
+			expect(workerMock.sendToMaster.called).not.to.be.ok();
 		});
 
 		it('should invoke procedure on SlaveWAMPServer if it was registered on both WAMPServer and SlaveWAMPServer', () => {
@@ -218,15 +209,15 @@ describe('SlaveWAMPServer', () => {
 			slaveWampServer.registerRPCEndpoints(endpoint);
 			slaveWampServer.registerRPCSlaveEndpoints(endpoint);
 			slaveWampServer.processWAMPRequest(validRequest, socketMock);
-			expect(endpoint.procedureName.calledOnce).to.be.ok;
+			expect(endpoint.procedureName.calledOnce).to.be.ok();
 			expect(endpoint.procedureName.calledWith({
 				procedure: 'procedureName',
 				type: '/WAMPRequest',
 				socketId: 'validSocketId',
 				workerId: 'validWorkerId',
-			})).to.be.ok;
+			})).to.be.ok();
 
-			expect(workerMock.sendToMaster.called).not.to.be.ok;
+			expect(workerMock.sendToMaster.called).not.to.be.ok();
 		});
 	});
 });

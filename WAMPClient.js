@@ -1,5 +1,3 @@
-
-
 const get = require('lodash.get');
 const schemas = require('./schemas');
 
@@ -11,9 +9,12 @@ class WAMPClient {
 		return 100;
 	}
 
+	/**
+	 * @param {object} procedureCalls
+	 * @returns {*}
+	 */
 	static generateSignature(procedureCalls) {
-		/* eslint no-bitwise: ["error", { "int32Hint": true }] */
-		const generateNonce = () => Math.random() * 100000 | 0;
+		const generateNonce = () => Math.ceil((Math.random() * 100000));
 
 		const tryGenerateSignature = (nonce) => {
 			const signatureCandidate = `${(new Date()).getTime()}_${nonce}`;
@@ -25,7 +26,6 @@ class WAMPClient {
 
 		return tryGenerateSignature(generateNonce());
 	}
-
 
 	constructor() {
 		this.callsResolvers = {};
@@ -71,7 +71,6 @@ class WAMPClient {
 			} else {
 				const signature = WAMPClient.generateSignature(this.callsResolvers[procedure]);
 				this.callsResolvers[procedure][signature] = { success, fail };
-
 				socket.send(JSON.stringify({
 					data,
 					procedure,

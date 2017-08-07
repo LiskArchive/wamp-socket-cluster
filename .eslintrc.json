@@ -1,0 +1,6 @@
+{
+  "extends": ["lisk-base"],
+  "env": {
+    "node": true
+  }
+}

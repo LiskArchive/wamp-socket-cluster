@@ -1,18 +1,18 @@
-/* eslint no-unused-expressions: 0 */
-// https://github.com/jonathanglasmeyer/graphql-sequelize/commit/00814cac3aa9fa6d20aed38df838dcbc4b4ab9b4
-
+/* eslint-env node, mocha */
 const chai = require('chai');
+const dirtyChai = require('dirty-chai');
 const sinon = require('sinon');
 const WAMPServer = require('./WAMPServer.js');
 
 const expect = chai.expect;
+chai.use(dirtyChai);
 
 describe('WAMPServer', () => {
 	describe('constructor', () => {
 		it('create wampServer with endpoints field', () => {
 			const wampServer = new WAMPServer();
-			expect(wampServer).to.have.deep.property('endpoints.rpc').to.be.a('object').and.to.be.empty;
-			expect(wampServer).to.have.deep.property('endpoints.event').to.be.a('object').and.to.be.empty;
+			expect(wampServer).to.have.deep.property('endpoints.rpc').to.be.a('object').and.to.be.empty();
+			expect(wampServer).to.have.deep.property('endpoints.event').to.be.a('object').and.to.be.empty();
 		});
 	});
 
@@ -22,8 +22,8 @@ describe('WAMPServer', () => {
 				on: sinon.spy(),
 			};
 			socket = new WAMPServer().upgradeToWAMP(socket);
-			expect(socket.on.calledOnce).to.be.ok;
-			expect(socket.on.calledWith('raw')).to.be.ok;
+			expect(socket.on.calledOnce).to.be.ok();
+			expect(socket.on.calledWith('raw')).to.be.ok();
 		});
 	});
 
@@ -112,8 +112,8 @@ describe('WAMPServer', () => {
 			wampServer.upgradeToWAMP(socket);
 			wampServer.registerRPCEndpoints(endpoint);
 			wampServer.processWAMPRequest({ procedure: 'procedureA', data: 'valueA' }, socket);
-			expect(endpoint.procedureA.calledOnce).to.be.ok;
-			expect(endpoint.procedureA.calledWith('valueA')).to.be.ok;
+			expect(endpoint.procedureA.calledOnce).to.be.ok();
+			expect(endpoint.procedureA.calledWith('valueA')).to.be.ok();
 		});
 	});
 });
