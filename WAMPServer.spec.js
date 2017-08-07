@@ -1,11 +1,7 @@
 /* eslint-env node, mocha */
-const chai = require('chai');
-const dirtyChai = require('dirty-chai');
 const sinon = require('sinon');
 const WAMPServer = require('./WAMPServer.js');
-
-const expect = chai.expect;
-chai.use(dirtyChai);
+const { expect } = require('./testSetup.spec');
 
 describe('WAMPServer', () => {
 	describe('constructor', () => {

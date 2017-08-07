@@ -1,4 +1,4 @@
-'use strict';
+
 
 const SocketCluster = require('socketcluster').SocketCluster;
 
@@ -7,21 +7,21 @@ const options = {
 	port: 8000,
 	wsEngine: 'uws',
 	appName: 'wampSocketCluster',
-	workerController: './serverWorker.js'
+	workerController: `${__dirname}/serverWorker.js`,
 };
 
-const SOCKET_CLUSTER_KEY = Symbol.for("Lisk.SocketClusterServer");
+const SOCKET_CLUSTER_KEY = Symbol.for('App.SocketClusterServer');
 const globalSymbols = Object.getOwnPropertySymbols(global);
 const hasSocketCluster = (globalSymbols.indexOf(SOCKET_CLUSTER_KEY) > -1);
 
 if (!hasSocketCluster) {
 	global[SOCKET_CLUSTER_KEY] = {
-		socketCluster: new SocketCluster(options)
+		socketCluster: new SocketCluster(options),
 	};
 }
 
 const socketClusterSingleton = {
-	getInstance: () => global[SOCKET_CLUSTER_KEY]
+	getInstance: () => global[SOCKET_CLUSTER_KEY],
 };
 
 module.exports = socketClusterSingleton;

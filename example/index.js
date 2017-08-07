@@ -1,12 +1,9 @@
-'use strict';
-// const socketCluster = require('./server').getInstance();
+require('./server').getInstance();
 
 const Client = require('./client');
 
-setTimeout(function () {
-
+setTimeout(() => {
 	const c = new Client();
 	c.connect();
 	c.callRPCInInterval();
-
 }, 1000);

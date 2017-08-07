@@ -1,17 +1,12 @@
 /* eslint-env node, mocha */
-const chai = require('chai');
-const dirtyChai = require('dirty-chai');
 const sinon = require('sinon');
-
 const Validator = require('jsonschema').Validator;
+const { expect } = require('./testSetup.spec');
 
 const v = new Validator();
 
 const WAMPClient = require('./WAMPClient.js');
 const WAMPResponseSchema = require('./schemas').WAMPResponseSchema;
-
-const expect = chai.expect;
-chai.use(dirtyChai);
 
 let clock;
 
@@ -44,7 +39,7 @@ describe('WAMPClient', () => {
 	describe('wampSocket', () => {
 		describe('send', () => {
 			let wampClient;
-			let	wampSocket;
+			let wampSocket;
 
 			const someArgument = {
 				propA: 'valueA',

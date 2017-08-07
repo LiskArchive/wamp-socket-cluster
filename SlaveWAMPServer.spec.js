@@ -1,12 +1,9 @@
 /* eslint-env node, mocha */
 /* eslint-disable no-new */
-const chai = require('chai');
-const dirtyChai = require('dirty-chai');
 const sinon = require('sinon');
 const SlaveWAMPServer = require('./SlaveWAMPServer');
 
-const expect = chai.expect;
-chai.use(dirtyChai);
+const { expect } = require('./testSetup.spec');
 
 describe('SlaveWAMPServer', () => {
 	describe('constructor', () => {
@@ -146,7 +143,7 @@ describe('SlaveWAMPServer', () => {
 		const slaveWampServer = new SlaveWAMPServer(workerMock);
 
 		let validRequest;
-		let	validSlaveToMasterRequest;
+		let validSlaveToMasterRequest;
 
 		beforeEach(() => {
 			workerMock.on.reset();

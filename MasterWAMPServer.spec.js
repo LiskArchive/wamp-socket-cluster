@@ -1,13 +1,9 @@
 /* eslint-env node, mocha */
 /* eslint-disable no-new */
-const chai = require('chai');
-const dirtyChai = require('dirty-chai');
 const sinon = require('sinon');
+const { expect } = require('./testSetup.spec');
 const MasterWAMPServer = require('./MasterWAMPServer');
 const MasterWAMPRequestSchema = require('./schemas').MasterWAMPRequestSchema;
-
-const expect = chai.expect;
-chai.use(dirtyChai);
 
 describe('MasterWAMPServer', () => {
 	describe('constructor', () => {
