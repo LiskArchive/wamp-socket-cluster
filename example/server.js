@@ -1,5 +1,3 @@
-
-
 const SocketCluster = require('socketcluster').SocketCluster;
 
 const options = {

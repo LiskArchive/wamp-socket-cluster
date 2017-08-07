@@ -1,5 +1,3 @@
-
-
 const scClient = require('socketcluster-client');
 const WAMPClient = require('../WAMPClient');
 
@@ -24,7 +22,7 @@ Client.prototype.connect = () => {
 	});
 
 	this.socket.on('connect', () => {
-		console.log('socket client connected');
+		console.info('socket client connected');
 	});
 
 	return this.socket;
@@ -33,14 +31,14 @@ Client.prototype.connect = () => {
 Client.prototype.callRPCInInterval = () => {
 	const interval = setInterval(() => {
 		const randNumber = Math.floor(Math.random() * 5);
-		console.log('invoked multiplyByTwo RPC function with parameter: ', randNumber);
+		console.info('invoked multiplyByTwo RPC function with parameter: ', randNumber);
 		this.socket.wampSend('multiplyByTwo', randNumber)
-			.then(result => console.log(`RPC result: ${randNumber} * 2 = ${result}`))
+			.then(result => console.info(`RPC result: ${randNumber} * 2 = ${result}`))
 			.catch(() => console.error('RPC multiply by two error'));
 	}, 1000);
 
 	this.socket.on('disconnect', () => {
-		console.log('socket client disconnected');
+		console.warn('socket client disconnected');
 		clearInterval(interval);
 	});
 };

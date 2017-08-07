@@ -14,17 +14,28 @@ def buildDependency() {
 	}
 }
 
-def runTests() {
+def runLinter() {
 	try {
 		sh '''#!/bin/bash
 		npm run eslint
+		'''
+	} catch (err) {
+		currentBuild.result = 'FAILURE'
+		error('Eslint failed')
+	}
+}
+
+def runTests() {
+	try {
+		sh '''#!/bin/bash
 		npm run test
 		'''
 	} catch (err) {
 		currentBuild.result = 'FAILURE'
-		error('Stopping build, installation failed')
+		error('Tests are failing')
 	}
 }
+
 node('wamp-socket-cluster'){
 	lock(resource: "wamp-socket-cluster", inversePrecedence: true) {
 		stage ('Prepare Workspace') {
@@ -33,6 +44,10 @@ node('wamp-socket-cluster'){
 
 		stage ('Build Dependencies') {
 			buildDependency()
+		}
+
+		stage ('Run linter') {
+			runLinter()
 		}
 
 		stage ('Execute Tests') {

@@ -29,7 +29,7 @@ class SlaveWAMPServer extends WAMPServer {
 					delete response.socketId;
 					delete response.workerId;
 					response.type = schemas.WAMPRequestSchema.id;
-					WAMPServer.reply(socket, response, response.error, response.data);
+					this.reply(socket, response, response.error, response.data);
 				} else {
 					throw new Error('Socket that requested RPC call not found anymore');
 				}
