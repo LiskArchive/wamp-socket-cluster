@@ -7,5 +7,5 @@ module.exports = {
 	SlaveWAMPServer,
 	MasterWAMPServer,
 	WAMPClient,
-	WAMPServer
+	WAMPServer,
 };

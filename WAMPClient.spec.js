@@ -1,70 +1,64 @@
-'use strict';
-
-const chai = require('chai');
+/* eslint-env node, mocha */
 const sinon = require('sinon');
-
 const Validator = require('jsonschema').Validator;
+const { expect } = require('./testSetup.spec');
 
 const v = new Validator();
 
 const WAMPClient = require('./WAMPClient.js');
 const WAMPResponseSchema = require('./schemas').WAMPResponseSchema;
 
-const expect = chai.expect;
+let clock;
 
-const clock = sinon.useFakeTimers(new Date(2020,1,1).getTime());
+before(() => {
+	clock = sinon.useFakeTimers(new Date(2020, 1, 1).getTime());
+});
 
-describe('WAMPClient', function () {
-
+describe('WAMPClient', () => {
 	let fakeSocket;
 
-	beforeEach(function () {
+	beforeEach(() => {
 		fakeSocket = {
-			on: sinon.spy()
+			on: sinon.spy(),
 		};
 	});
-	describe('constructor', function () {
-
-		it('create wampClient with callsResolver field', function () {
+	describe('constructor', () => {
+		it('create wampClient with callsResolver field', () => {
 			const wampClient = new WAMPClient();
-			expect(wampClient).to.have.property('callsResolvers').to.be.a('object').and.to.be.empty;
+			expect(wampClient).to.have.property('callsResolvers').to.be.a('object').and.to.be.empty();
 		});
-
 	});
 
-	describe('upgradeToWAMP', function () {
-
-		it('should add send function to given parameter', function () {
+	describe('upgradeToWAMP', () => {
+		it('should add send function to given parameter', () => {
 			const wampSocket = new WAMPClient().upgradeToWAMP(fakeSocket);
-			expect(wampSocket).to.have.property('wampSend').to.be.a('function')
+			expect(wampSocket).to.have.property('wampSend').to.be.a('function');
 		});
-
 	});
 
-	describe('wampSocket', function () {
-
-		describe('send', function () {
-
-			let wampClient, wampSocket;
+	describe('wampSocket', () => {
+		describe('send', () => {
+			let wampClient;
+			let wampSocket;
 
 			const someArgument = {
-				propA: 'valueA'
+				propA: 'valueA',
 			};
 
-			beforeEach(function () {
+			beforeEach(() => {
 				wampClient = new WAMPClient(fakeSocket);
 				wampSocket = {
 					send: sinon.spy(),
-					on: sinon.spy()
+					on: sinon.spy(),
 				};
 				wampSocket = wampClient.upgradeToWAMP(wampSocket);
 			});
 
-			it('should return a promise', function () {
+			it('should return a promise', () => {
 				expect(wampSocket.wampSend()).to.be.a('promise');
 			});
 
-			it('should create correct entry in wampClient.callsResolvers', function () {
+			it('should create correct entry in wampClient.callsResolvers', () => {
 				const procedure = 'procedureA';
 				wampSocket.wampSend(procedure);
 				expect(Object.keys(wampClient.callsResolvers[procedure]).length).equal(1);
@@ -75,7 +69,7 @@ describe('WAMPClient', function () {
 				expect(wampClient.callsResolvers[procedure][signature].fail).to.be.a('function');
 			});
 
-			it('should create 2 correct entries for calling twice the same procedures', function () {
+			it('should create 2 correct entries for calling twice the same procedures', () => {
 				const procedure = 'procedureA';
 				wampSocket.wampSend(procedure);
 				wampSocket.wampSend(procedure);
@@ -88,7 +82,7 @@ describe('WAMPClient', function () {
 			});
 
 
-			it('should create 2 correct entries for calling twice different procedures', function () {
+			it('should create 2 correct entries for calling twice different procedures', () => {
 				const procedureA = 'procedureA';
 				const procedureB = 'procedureB';
 				wampSocket.wampSend(procedureA);
@@ -99,25 +93,25 @@ describe('WAMPClient', function () {
 			});
 
 
-			it('should not create entries after exceeding the MAX_CALLS_ALLOWED limit', function () {
+			it('should not create entries after exceeding the MAX_CALLS_ALLOWED limit', () => {
 				const procedure = 'procedureA';
 
 				for (let i = 0; i <= WAMPClient.MAX_CALLS_ALLOWED; i += 1) {
 					wampSocket.wampSend(procedure).catch(() => {});
 				}
 
-				expect(Object.keys(wampClient.callsResolvers[procedure]).length).equal(WAMPClient.MAX_CALLS_ALLOWED);
-
+				expect(Object.keys(wampClient.callsResolvers[procedure]).length)
+					.equal(WAMPClient.MAX_CALLS_ALLOWED);
 			});
 
-			it('should invoke socket.emit function', function () {
+			it('should invoke socket.emit function', () => {
 				const procedure = 'procedureA';
 
 				wampSocket.wampSend(procedure);
-				expect(wampSocket.send.calledOnce).to.be.ok;
+				expect(wampSocket.send.calledOnce).to.be.ok();
 			});
 
-			it('should invoke socket.emit function with passed arguments', function () {
+			it('should invoke socket.emit function with passed arguments', () => {
 				const procedure = 'procedureA';
 				wampSocket.wampSend(procedure, someArgument);
 
@@ -128,14 +122,14 @@ describe('WAMPClient', function () {
 			});
 
 
-			it('should invoke socket.on function', function () {
+			it('should invoke socket.on function', () => {
 				const procedure = 'procedureA';
 
 				wampSocket.wampSend(procedure);
-				expect(wampSocket.on.calledOnce).to.be.ok;
+				expect(wampSocket.on.calledOnce).to.be.ok();
 			});
 
-			it('should invoke socket.on function with passed arguments', function () {
+			it('should invoke socket.on function with passed arguments', () => {
 				const procedure = 'procedureA';
 				wampSocket.wampSend(procedure, someArgument);
 
@@ -143,61 +137,56 @@ describe('WAMPClient', function () {
 				expect(wampSocket.on.getCalls()[0].args.length).equal(2);
 				expect(wampSocket.on.getCalls()[0].args[0]).equal('raw');
 				expect(wampSocket.on.getCalls()[0].args[1]).to.be.a('function');
-
 			});
 
-			describe('resolving responses', function () {
-
-				before(function () {
-					sinon.stub(Math, "random").returns(0);
+			describe('resolving responses', () => {
+				before(() => {
+					sinon.stub(Math, 'random').returns(0);
 				});
 
 
-				it('should resolve with passed data when server responds when passed valid WAMPResult', function (done) {
-
+				it('should resolve with passed data when server responds when passed valid WAMPResult', (done) => {
 					const procedure = 'procedureA';
 					const sampleWampServerResponse = {
 						procedure,
 						type: WAMPResponseSchema.id,
-						signature: (new Date()).getTime() + '_0',
+						signature: `${(new Date()).getTime()}_0`,
 						success: true,
 						error: null,
 						data: {
-							propA: 'valueA'
-						}
+							propA: 'valueA',
+						},
 					};
 
-					expect(v.validate(sampleWampServerResponse, WAMPResponseSchema).valid).to.be.ok;
+					expect(v.validate(sampleWampServerResponse, WAMPResponseSchema).valid).to.be.ok();
 
-					wampSocket.wampSend(procedure).then(data => {
+					wampSocket.wampSend(procedure).then((data) => {
 						expect(data).equal(sampleWampServerResponse.data);
 						done();
-					}).catch(err => {
-						expect(err).to.be.empty;
+					}).catch((err) => {
+						expect(err).to.be.empty();
 					});
 
 					const mockedServerResponse = wampSocket.on.getCalls()[0].args[1];
 					mockedServerResponse(sampleWampServerResponse);
-
 				});
 
-				it('should reject with passed data when server responds with invalid WAMPResult', function (done) {
-
+				it('should reject with passed data when server responds with invalid WAMPResult', (done) => {
 					const procedure = 'procedureA';
 					const invalidWampServerResponse = {
 						procedure,
 						type: WAMPResponseSchema.id,
-						signature: (new Date()).getTime() + '_0',
+						signature: `${(new Date()).getTime()}_0`,
 						success: false,
 						error: 'err desc',
 						data: {
-							propA: 'valueA'
-						}
+							propA: 'valueA',
+						},
 					};
 
-					wampSocket.wampSend(procedure).then(data => {
-						expect(data).to.be.empty;
-					}).catch(err => {
+					wampSocket.wampSend(procedure).then((data) => {
+						expect(data).to.be.empty();
+					}).catch((err) => {
 						expect(err).equal(invalidWampServerResponse.error);
 						done();
 					});
@@ -207,8 +196,7 @@ describe('WAMPClient', function () {
 				});
 
 
-				it('should throw an error when no request signature provided', function (done) {
-
+				it('should throw an error when no request signature provided', (done) => {
 					const procedure = 'procedureA';
 					const sampleWampServerResponse = Object.assign(someArgument, {
 						procedure,
@@ -216,15 +204,15 @@ describe('WAMPClient', function () {
 						success: false,
 						error: 'err desc',
 						data: {
-							propA: 'valueA'
-						}
+							propA: 'valueA',
+						},
 					});
 
 					wampSocket.wampSend(procedure);
 					const mockedServerResponse = wampSocket.on.getCalls()[0].args[1];
 					try {
 						mockedServerResponse(sampleWampServerResponse);
-					} catch(err) {
+					} catch (err) {
 						expect(err.toString()).equal(`Error: Unable to find resolving function for procedure ${procedure} with signature undefined`);
 						done();
 					}
@@ -232,7 +220,7 @@ describe('WAMPClient', function () {
 					done();
 				});
 
-				it('should throw an error when wrong request signature provided', function (done) {
+				it('should throw an error when wrong request signature provided', (done) => {
 					const procedure = 'procedureA';
 					const sampleWampServerResponse = Object.assign(someArgument, {
 						procedure,
@@ -241,15 +229,15 @@ describe('WAMPClient', function () {
 						success: false,
 						error: 'err desc',
 						data: {
-							propA: 'valueA'
-						}
+							propA: 'valueA',
+						},
 					});
 
 					wampSocket.wampSend(procedure);
 					const mockedServerResponse = wampSocket.on.getCalls()[0].args[1];
 					try {
 						mockedServerResponse(sampleWampServerResponse);
-					} catch(err) {
+					} catch (err) {
 						expect(err.toString()).equal(`Error: Unable to find resolving function for procedure ${procedure} with signature ${sampleWampServerResponse.signature}`);
 						done();
 					}
@@ -257,4 +245,8 @@ describe('WAMPClient', function () {
 			});
 		});
 	});
+});
+
+after(() => {
+	clock.restore();
 });
