@@ -83,7 +83,7 @@ class SlaveWAMPServer extends WAMPServer {
 			if (this.endpoints.slaveRpc[request.procedure] &&
 				typeof this.endpoints.slaveRpc[request.procedure] === 'function') {
 				this.endpoints.slaveRpc[request.procedure](request,
-					WAMPServer.reply.bind(this, socket, request));
+					this.reply.bind(this, socket, request));
 			} else {
 				request.type = schemas.MasterWAMPRequestSchema.id;
 				this.worker.sendToMaster(request);

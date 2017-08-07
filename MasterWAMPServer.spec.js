@@ -103,4 +103,10 @@ describe('MasterWAMPServer', () => {
 			});
 		});
 	});
+
+	describe('reply', () => {
+		it('should use MasterWAMPServer.reply', () => {
+
+		});
+	});
 });

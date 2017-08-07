@@ -24,17 +24,6 @@ class WAMPServer {
 	}
 
 	/**
-	 * @param {SocketCluster.Socket} socket
-	 * @param {WAMPRequestSchema} request
-	 * @param {*} error
-	 * @param {*} data
-	 */
-	static reply(socket, request, error, data) {
-		const payload = WAMPServer.createResponsePayload(request, error, data);
-		socket.send(JSON.stringify(payload));
-	}
-
-	/**
 	 * @param {object} socket - SocketCluster.Socket
 	 * @returns {object} wampSocket
 	 */
@@ -74,15 +63,27 @@ class WAMPServer {
 		if (this.endpoints.rpc[request.procedure] &&
 			typeof this.endpoints.rpc[request.procedure] === 'function') {
 			return this.endpoints.rpc[request.procedure](request.data,
-				WAMPServer.reply.bind(this, socket, request));
+				this.reply.bind(this, socket, request));
 		} else if (this.endpoints.event[request.procedure] &&
 			typeof this.endpoints.event[request.procedure] === 'function') {
 			return this.endpoints.event[request.procedure](request.data);
 		}
 
-		return WAMPServer.reply(socket, request,
+		return this.reply(socket, request,
 			`Procedure ${request.procedure} not registered on WAMPServer. 
 			Available commands: ${JSON.stringify(Object.keys(this.endpoints.rpc))}`, null);
+	}
+
+	/**
+	 * @param {SocketCluster.Socket} socket
+	 * @param {WAMPRequestSchema} request
+	 * @param {*} error
+	 * @param {*} data
+	 */
+	/* eslint class-methods-use-this: 0 */
+	reply(socket, request, error, data) {
+		const payload = WAMPServer.createResponsePayload(request, error, data);
+		socket.send(JSON.stringify(payload));
 	}
 
 	/**
