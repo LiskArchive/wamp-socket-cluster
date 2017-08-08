@@ -10,7 +10,7 @@ class WAMPClient {
 	}
 
 	/**
-	 * @param {object} procedureCalls
+	 * @param {Object} procedureCalls
 	 * @returns {*}
 	 */
 	static generateSignature(procedureCalls) {
@@ -32,8 +32,8 @@ class WAMPClient {
 	}
 
 	/**
-	 * @param {object} socket - SocketCluster.Socket
-	 * @returns {object} wampSocket
+	 * @param {Object} socket - SocketCluster.Socket
+	 * @returns {Object} wampSocket
 	 */
 	upgradeToWAMP(socket) {
 		if (socket.wampSend && socket.listeners('raw').length) {

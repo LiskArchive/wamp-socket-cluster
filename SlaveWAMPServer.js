@@ -51,8 +51,8 @@ class SlaveWAMPServer extends WAMPServer {
 	}
 
 	/**
-	 * @param {object} request
-	 * @returns {{}}
+	 * @param {Object}[request={}] request
+	 * @returns {WAMPRequestSchema}
 	 */
 	static normalizeRequest(request = {}) {
 		if (!request.procedure || typeof request.procedure !== 'string') {
@@ -88,8 +88,7 @@ class SlaveWAMPServer extends WAMPServer {
 
 	/**
 	 * @param {WAMPRequestSchema} request
-	 * @param {object} socket
-	 * @returns {*}
+	 * @param {Object} socket
 	 */
 	processWAMPRequest(request, socket) {
 		if (v.validate(request, schemas.WAMPRequestSchema).valid) {
@@ -114,9 +113,8 @@ class SlaveWAMPServer extends WAMPServer {
 		return delete this.interProcessRPC[socketId];
 	}
 
-
 	/**
-	 * @param {InterProcessRPCRequestSchema} request
+	 * @param {InterProcessRPCRequestSchema}[request={}] request
 	 * @param {Function} cb
 	 */
 	saveCall(request = {}, cb) {
@@ -130,14 +128,14 @@ class SlaveWAMPServer extends WAMPServer {
 	}
 
 	/**
-	 * @param {InterProcessRPCRequestSchema} request
+	 * @param {InterProcessRPCRequestSchema}[request={}] request
 	 */
 	getCall(request = {}) {
 		return get(this.interProcessRPC, `${request.socketId}.${request.procedure}.${request.signature}`, false);
 	}
 
 	/**
-	 * @param {InterProcessRPCResponseSchema} request
+	 * @param {InterProcessRPCResponseSchema}[request={}] request
 	 */
 	deleteCall(request = {}) {
 		if (!request.socketId || !request.procedure || !request.signature) {

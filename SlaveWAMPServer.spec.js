@@ -11,6 +11,10 @@ before(() => {
 	clock = sinon.useFakeTimers(new Date(2020, 1, 1).getTime());
 });
 
+after(() => {
+	clock.restore();
+});
+
 describe('SlaveWAMPServer', () => {
 	let workerMock;
 	let slaveWampServer;
@@ -24,8 +28,6 @@ describe('SlaveWAMPServer', () => {
 				clients: {},
 			},
 		};
-		workerMock.on.reset();
-		workerMock.sendToMaster.reset();
 		slaveWampServer = new SlaveWAMPServer(workerMock);
 	});
 
@@ -58,10 +60,9 @@ describe('SlaveWAMPServer', () => {
 
 	describe('normalizeRequest', () => {
 		let validRequest;
-		let normalizeRequest;
+		const normalizeRequest = SlaveWAMPServer.normalizeRequest;
 
 		beforeEach(() => {
-			normalizeRequest = SlaveWAMPServer.normalizeRequest;
 			validRequest = {
 				socketId: 'validSocketId',
 				procedure: 'validProcedure',
@@ -235,6 +236,10 @@ describe('SlaveWAMPServer', () => {
 			sinon.stub(Math, 'random').returns(0);
 		});
 
+		after(() => {
+			Math.random.restore();
+		});
+
 		it('should pass correct InterProcessRPCRequestSchema compatible request to sendToMaster function', () => {
 			slaveWampServer.sendToMaster(validProcedure, validData, validSocketId, actionCb);
 			expect(workerMock.sendToMaster.calledOnce).to.be.ok();
@@ -310,9 +315,7 @@ describe('SlaveWAMPServer', () => {
 		});
 
 		it('should throw an error when invoked without arguments', () => {
-			expect(() => {
-				slaveWampServer.saveCall();
-			}).to.throw('Cannot save a call for wrong InterProcessRPCRequest request');
+			expect(slaveWampServer.saveCall).to.throw('Cannot save a call for wrong InterProcessRPCRequest request');
 			expect(slaveWampServer.interProcessRPC).to.be.empty();
 		});
 
@@ -349,9 +352,7 @@ describe('SlaveWAMPServer', () => {
 
 		it('should create a new entry in interProcessRPC for valid request', () => {
 			slaveWampServer.saveCall(validRequest, validCb);
-			expect(slaveWampServer.interProcessRPC).to.have.property(validSocketId);
-			expect(slaveWampServer.interProcessRPC[validSocketId]).to.have.property(validProcedure);
-			expect(slaveWampServer.interProcessRPC[validSocketId][validProcedure]).to.have.property(validSignature).to.be.a('function');
+			expect(slaveWampServer.interProcessRPC).to.have.nested.property(`${validSocketId}.${validProcedure}.${validSignature}`).to.be.a('function');
 		});
 
 		it('should create multiple entries in interProcessRPC for multiple valid requests', () => {
@@ -361,15 +362,12 @@ describe('SlaveWAMPServer', () => {
 			validRequestB.procedure += 'B';
 			validRequestB.signature += 'B';
 			slaveWampServer.saveCall(validRequestB, validCb);
-			expect(slaveWampServer.interProcessRPC).to.have.property(validSocketId);
-			expect(slaveWampServer.interProcessRPC[validSocketId]).to.have.property(validProcedure);
-			expect(slaveWampServer.interProcessRPC[validSocketId][validProcedure])
-				.to.have.property(validSignature).to.be.a('function');
-			expect(slaveWampServer.interProcessRPC).to.have.property(validRequestB.socketId);
-			expect(slaveWampServer.interProcessRPC[validRequestB.socketId])
-				.to.have.property(validRequestB.procedure);
-			expect(slaveWampServer.interProcessRPC[validRequestB.socketId][validRequestB.procedure])
-				.to.have.property(validRequestB.signature).to.be.a('function');
+			expect(slaveWampServer.interProcessRPC)
+				.to.have.nested.property(`${validSocketId}.${validProcedure}.${validSignature}`)
+				.to.be.a('function');
+			expect(slaveWampServer.interProcessRPC)
+				.to.have.nested.property(`${validRequestB.socketId}.${validRequestB.procedure}.${validRequestB.signature}`)
+				.to.be.a('function');
 		});
 	});
 
@@ -391,9 +389,7 @@ describe('SlaveWAMPServer', () => {
 		});
 
 		it('should throw an error when invoked without arguments', () => {
-			expect(() => {
-				slaveWampServer.deleteCall();
-			}).to.throw('Cannot delete a call for wrong InterProcessRPCRequest request');
+			expect(slaveWampServer.deleteCall).to.throw('Cannot delete a call for wrong InterProcessRPCRequest request');
 			expect(slaveWampServer.interProcessRPC).to.be.empty();
 		});
 
@@ -496,18 +492,9 @@ describe('SlaveWAMPServer', () => {
 				expect(slaveWampServer.getCall()).to.be.not.ok();
 			});
 
-			it('should return false when invoked without signature', () => {
-				delete validRequest.signature;
-				expect(slaveWampServer.getCall()).to.be.not.ok();
-			});
-
 			it('should return true when invoked with valid request', () => {
 				expect(slaveWampServer.getCall(validRequest)).to.be.ok();
 			});
 		});
 	});
-});
-
-after(() => {
-	clock.restore();
 });

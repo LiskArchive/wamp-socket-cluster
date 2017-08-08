@@ -14,6 +14,10 @@ before(() => {
 	clock = sinon.useFakeTimers(new Date(2020, 1, 1).getTime());
 });
 
+after(() => {
+	clock.restore();
+});
+
 describe('WAMPClient', () => {
 	let fakeSocket;
 
@@ -44,12 +48,6 @@ describe('WAMPClient', () => {
 			const someArgument = {
 				propA: 'valueA',
 			};
-
-			before(() => {
-				if (Math.random.restore) {
-					Math.random.restore();
-				}
-			});
 
 			beforeEach(() => {
 				wampClient = new WAMPClient(fakeSocket);
@@ -255,8 +253,4 @@ describe('WAMPClient', () => {
 			});
 		});
 	});
-});
-
-after(() => {
-	clock.restore();
 });

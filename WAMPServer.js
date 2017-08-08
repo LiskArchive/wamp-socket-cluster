@@ -9,10 +9,10 @@ class WAMPServer {
 	}
 
 	/**
-	 * @param {object} request
+	 * @param {Object} request
 	 * @param {Error} error
 	 * @param {*} data
-	 * @returns {object}
+	 * @returns {Object}
 	 */
 	static createResponsePayload(request, error, data) {
 		return Object.assign({}, request, {
@@ -24,8 +24,8 @@ class WAMPServer {
 	}
 
 	/**
-	 * @param {object} socket - SocketCluster.Socket
-	 * @returns {object} wampSocket
+	 * @param {Object} socket - SocketCluster.Socket
+	 * @returns {Object} wampSocket
 	 */
 	upgradeToWAMP(socket) {
 		// register RPC endpoints

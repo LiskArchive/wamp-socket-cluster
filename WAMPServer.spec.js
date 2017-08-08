@@ -7,8 +7,8 @@ describe('WAMPServer', () => {
 	describe('constructor', () => {
 		it('create wampServer with endpoints field', () => {
 			const wampServer = new WAMPServer();
-			expect(wampServer).to.have.deep.property('endpoints.rpc').to.be.a('object').and.to.be.empty();
-			expect(wampServer).to.have.deep.property('endpoints.event').to.be.a('object').and.to.be.empty();
+			expect(wampServer).to.have.nested.property('endpoints.rpc').to.be.a('object').and.to.be.empty();
+			expect(wampServer).to.have.nested.property('endpoints.event').to.be.a('object').and.to.be.empty();
 		});
 	});
 
