@@ -29,8 +29,13 @@ class MasterWAMPServer extends WAMPServer {
 			}
 		});
 
-		socketCluster.on('workerExit', workerInfo =>
-			this.workerIndices.splice(this.workerIndices.indexOf(workerInfo.id)), 1);
+		socketCluster.on('workerExit', (workerInfo) => {
+			const existingWorkerIndex = this.workerIndices.indexOf(workerInfo.id);
+			if (existingWorkerIndex === -1) {
+				return;
+			}
+			this.workerIndices.splice(existingWorkerIndex, 1);
+		});
 	}
 
 	/**
