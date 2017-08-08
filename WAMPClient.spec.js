@@ -112,7 +112,7 @@ describe('WAMPClient', () => {
 				const procedure = 'procedureA';
 
 				wampSocket.wampSend(procedure);
-				expect(wampSocket.send.calledOnce).to.be.ok();
+				expect(wampSocket.send.calledOnce).to.be.true();
 			});
 
 			it('should invoke socket.emit function with passed arguments', () => {
@@ -130,7 +130,7 @@ describe('WAMPClient', () => {
 				const procedure = 'procedureA';
 
 				wampSocket.wampSend(procedure);
-				expect(wampSocket.on.calledOnce).to.be.ok();
+				expect(wampSocket.on.calledOnce).to.be.true();
 			});
 
 			it('should invoke socket.on function with passed arguments', () => {
@@ -146,6 +146,10 @@ describe('WAMPClient', () => {
 			describe('resolving responses', () => {
 				before(() => {
 					sinon.stub(Math, 'random').returns(0);
+				});
+
+				after(() => {
+					Math.random.restore();
 				});
 
 
@@ -245,10 +249,6 @@ describe('WAMPClient', () => {
 						expect(err.toString()).equal(`Error: Unable to find resolving function for procedure ${procedure} with signature ${sampleWampServerResponse.signature}`);
 						done();
 					}
-				});
-
-				after(() => {
-					Math.random.restore();
 				});
 			});
 		});
