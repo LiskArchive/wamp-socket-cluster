@@ -3,7 +3,7 @@ const schemas = require('./schemas');
 
 class WAMPClient {
 	/**
-	 * @return {number}
+	 * @returns {number}
 	 */
 	static get MAX_CALLS_ALLOWED() {
 		return 100;

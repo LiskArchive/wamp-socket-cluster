@@ -71,6 +71,7 @@ class SlaveWAMPServer extends WAMPServer {
 	 * @param {*} data
 	 * @param {string} socketId
 	 * @param {Function} cb
+	 * @returns {undefined}
 	 */
 	sendToMaster(procedure, data, socketId, cb) {
 		const req = SlaveWAMPServer.normalizeRequest({
@@ -89,6 +90,7 @@ class SlaveWAMPServer extends WAMPServer {
 	/**
 	 * @param {WAMPRequestSchema} request
 	 * @param {Object} socket
+	 * @returns {undefined}
 	 */
 	processWAMPRequest(request, socket) {
 		if (v.validate(request, schemas.WAMPRequestSchema).valid) {
@@ -108,6 +110,7 @@ class SlaveWAMPServer extends WAMPServer {
 	/**
 	 * @param {string} socketId
 	 * @returns {boolean}
+	 * @returns {undefined}
 	 */
 	onSocketDisconnect(socketId) {
 		return delete this.interProcessRPC[socketId];
@@ -116,6 +119,7 @@ class SlaveWAMPServer extends WAMPServer {
 	/**
 	 * @param {InterProcessRPCRequestSchema}[request={}] request
 	 * @param {Function} cb
+	 * @returns {undefined}
 	 */
 	saveCall(request = {}, cb) {
 		if (!request.socketId || !request.procedure || !request.signature) {
@@ -129,13 +133,16 @@ class SlaveWAMPServer extends WAMPServer {
 
 	/**
 	 * @param {InterProcessRPCRequestSchema}[request={}] request
+	 * @returns {InterProcessRPCRequestSchema|false}
 	 */
 	getCall(request = {}) {
 		return get(this.interProcessRPC, `${request.socketId}.${request.procedure}.${request.signature}`, false);
 	}
 
+
 	/**
 	 * @param {InterProcessRPCResponseSchema}[request={}] request
+	 * @returns {boolean}
 	 */
 	deleteCall(request = {}) {
 		if (!request.socketId || !request.procedure || !request.signature) {
@@ -149,6 +156,7 @@ class SlaveWAMPServer extends WAMPServer {
 
 	/**
 	 * @param {Map<RPCEndpoint>} endpoints
+	 * @returns {undefined}
 	 */
 	reassignRPCSlaveEndpoints(endpoints) {
 		this.endpoints.slaveRpc = endpoints;
@@ -156,6 +164,7 @@ class SlaveWAMPServer extends WAMPServer {
 
 	/**
 	 * @param {Map<RPCEndpoint>} endpoints
+	 * @returns {undefined}
 	 */
 	registerRPCSlaveEndpoints(endpoints) {
 		this.endpoints.slaveRpc = Object.assign(this.endpoints.slaveRpc, endpoints);

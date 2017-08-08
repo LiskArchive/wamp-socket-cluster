@@ -38,6 +38,7 @@ class MasterWAMPServer extends WAMPServer {
 	 * @param {WAMPRequestSchema} request
 	 * @param {*} error
 	 * @param {*} data
+	 * @returns {undefined}
 	 */
 	reply(socket, request, error, data) {
 		const payload = MasterWAMPServer.createResponsePayload(request, error, data);
