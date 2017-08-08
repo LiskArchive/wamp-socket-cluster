@@ -5,52 +5,63 @@ const SlaveWAMPServer = require('./SlaveWAMPServer');
 
 const { expect } = require('./testSetup.spec');
 
+let clock;
+
+before(() => {
+	clock = sinon.useFakeTimers(new Date(2020, 1, 1).getTime());
+});
+
 describe('SlaveWAMPServer', () => {
+	let workerMock;
+	let slaveWampServer;
+
+	beforeEach(() => {
+		workerMock = {
+			id: 0,
+			on: sinon.spy(),
+			sendToMaster: sinon.spy(),
+			scServer: {
+				clients: {},
+			},
+		};
+		workerMock.on.reset();
+		workerMock.sendToMaster.reset();
+		slaveWampServer = new SlaveWAMPServer(workerMock);
+	});
+
 	describe('constructor', () => {
-		let fakeWorker;
-
-		beforeEach(() => {
-			fakeWorker = {
-				id: 0,
-				on: sinon.spy(),
-				scServer: {
-					clients: {},
-				},
-			};
-		});
-
 		it('create SlaveWAMPServer with worker field', () => {
-			const slaveWAMPServer = new SlaveWAMPServer(fakeWorker);
+			const slaveWAMPServer = new SlaveWAMPServer(workerMock);
 			expect(slaveWAMPServer).to.have.property('worker').to.be.a('object').and.to.have.property('id').equal(0);
 		});
 
 		it('create SlaveWAMPServer with RPCCalls field', () => {
-			const slaveWAMPServer = new SlaveWAMPServer(fakeWorker);
+			const slaveWAMPServer = new SlaveWAMPServer(workerMock);
 			expect(slaveWAMPServer).to.have.property('interProcessRPC').to.be.a('object').and.to.be.empty();
 		});
 
 		it('create SlaveWAMPServer with sockets field', () => {
-			const slaveWAMPServer = new SlaveWAMPServer(fakeWorker);
+			const slaveWAMPServer = new SlaveWAMPServer(workerMock);
 			expect(slaveWAMPServer).to.have.property('sockets').to.be.a('object').and.to.be.empty();
 		});
 
 		it('create SlaveWAMPServer with sockets field', () => {
-			const slaveWAMPServer = new SlaveWAMPServer(fakeWorker);
+			const slaveWAMPServer = new SlaveWAMPServer(workerMock);
 			expect(slaveWAMPServer).to.have.property('sockets').to.be.a('object').and.to.be.empty();
 		});
 
 		it('create SlaveWAMPServer and register event listener from master process', () => {
-			new SlaveWAMPServer(fakeWorker);
-			expect(fakeWorker.on.calledOnce).to.be.ok();
-			expect(fakeWorker.on.calledWith('masterMessage')).to.be.ok();
+			expect(workerMock.on.calledOnce).to.be.ok();
+			expect(workerMock.on.calledWith('masterMessage')).to.be.ok();
 		});
 	});
 
 	describe('normalizeRequest', () => {
 		let validRequest;
-		const normalizeRequest = SlaveWAMPServer.normalizeRequest;
+		let normalizeRequest;
 
 		beforeEach(() => {
+			normalizeRequest = SlaveWAMPServer.normalizeRequest;
 			validRequest = {
 				socketId: 'validSocketId',
 				procedure: 'validProcedure',
@@ -125,29 +136,16 @@ describe('SlaveWAMPServer', () => {
 	});
 
 	describe('processWAMPRequest', () => {
-		const workerMock = {
-			id: 'validWorkerId',
-			on: sinon.spy(),
-			sendToMaster: sinon.spy(),
-			scServer: {
-				clients: [],
-			},
-		};
-
-		const socketMock = {
-			id: 'validSocketId',
-			on: sinon.spy(),
-			send: sinon.spy(),
-		};
-
-		const slaveWampServer = new SlaveWAMPServer(workerMock);
-
+		let socketMock;
 		let validRequest;
 		let validSlaveToMasterRequest;
 
 		beforeEach(() => {
-			workerMock.on.reset();
-			workerMock.sendToMaster.reset();
+			socketMock = {
+				id: 'validSocketId',
+				on: sinon.spy(),
+				send: sinon.spy(),
+			};
 
 			socketMock.on.reset();
 			socketMock.send.reset();
@@ -161,7 +159,7 @@ describe('SlaveWAMPServer', () => {
 				procedure: 'procedureName',
 				type: '/MasterWAMPRequest',
 				socketId: 'validSocketId',
-				workerId: 'validWorkerId',
+				workerId: 0,
 			};
 		});
 
@@ -180,7 +178,7 @@ describe('SlaveWAMPServer', () => {
 				procedure: 'procedureName',
 				type: '/WAMPRequest',
 				socketId: 'validSocketId',
-				workerId: 'validWorkerId',
+				workerId: 0,
 			})).to.be.ok();
 
 			expect(workerMock.sendToMaster.called).not.to.be.ok();
@@ -195,7 +193,7 @@ describe('SlaveWAMPServer', () => {
 				procedure: 'procedureName',
 				type: '/WAMPRequest',
 				socketId: 'validSocketId',
-				workerId: 'validWorkerId',
+				workerId: 0,
 			})).to.be.ok();
 
 			expect(workerMock.sendToMaster.called).not.to.be.ok();
@@ -211,76 +209,305 @@ describe('SlaveWAMPServer', () => {
 				procedure: 'procedureName',
 				type: '/WAMPRequest',
 				socketId: 'validSocketId',
-				workerId: 'validWorkerId',
+				workerId: 0,
 			})).to.be.ok();
 
 			expect(workerMock.sendToMaster.called).not.to.be.ok();
 		});
 	});
 
-	describe('getCall', function () {
+	describe('sendToMaster', () => {
+		let validProcedure;
+		let validData;
+		let validSocketId;
+		let validSignature;
+		const actionCb = sinon.spy();
 
+		beforeEach(() => {
+			actionCb.reset();
+			validProcedure = 'validProcedure';
+			validData = { validKey: 'validValue' };
+			validSocketId = 'validSocketId';
+			validSignature = `${new Date().getTime()}_0`;
+		});
+
+		before(() => {
+			sinon.stub(Math, 'random').returns(0);
+		});
+
+		it('should pass correct InterProcessRPCRequestSchema compatible request to sendToMaster function', () => {
+			slaveWampServer.sendToMaster(validProcedure, validData, validSocketId, actionCb);
+			expect(workerMock.sendToMaster.calledOnce).to.be.ok();
+			expect(workerMock.sendToMaster.calledWith({
+				type: '/InterProcessRPCRequestSchema',
+				procedure: validProcedure,
+				data: validData,
+				socketId: validSocketId,
+				workerId: 0,
+				signature: validSignature,
+			})).to.be.ok();
+		});
+
+		it('should pass create a new entry in interProcessRPC map', () => {
+			slaveWampServer.sendToMaster(validProcedure, validData, validSocketId, actionCb);
+			expect(slaveWampServer.interProcessRPC).to.have.property(validSocketId);
+			expect(slaveWampServer.interProcessRPC[validSocketId]).to.have.property(validProcedure);
+			expect(slaveWampServer.interProcessRPC[validSocketId][validProcedure]).to.have.property(validSignature).to.be.a('function');
+		});
+	});
+
+	describe('onSocketDisconnect', () => {
+		let validSocketId;
+		let validProcedure;
+		let validSignature;
+
+		beforeEach(() => {
+			validSocketId = 'validSocketId';
+			validProcedure = 'validProcedure';
+			validSignature = 'validSignature';
+		});
+
+		it('should leave interProcessRPC in initial state when invoked without arguments', () => {
+			slaveWampServer.onSocketDisconnect();
+			expect(slaveWampServer.interProcessRPC).to.be.empty();
+		});
+
+		it('should leave interProcessRPC in initial state when entry does not exist', () => {
+			slaveWampServer.onSocketDisconnect(validSocketId);
+			expect(slaveWampServer.interProcessRPC).to.be.empty();
+		});
+
+		it('should remove existing entry from interProcessRPC', () => {
+			slaveWampServer.interProcessRPC = {
+				[validSocketId]: {
+					[validProcedure]: {
+						[validSignature]: () => {},
+					},
+				},
+			};
+			slaveWampServer.onSocketDisconnect(validSocketId);
+			expect(slaveWampServer.interProcessRPC).to.be.empty();
+		});
+	});
+
+	describe('saveCall', () => {
 		let validSocketId;
 		let validProcedure;
 		let validSignature;
 		let validRequest;
 		let validCb;
 
-		beforeEach(function () {
+		beforeEach(() => {
 			validSocketId = 'validSocketId';
 			validProcedure = 'validProcedure';
 			validSignature = 'validSignature';
 			validRequest = {
 				socketId: validSocketId,
 				procedure: validProcedure,
-				signature: validSignature
+				signature: validSignature,
 			};
 			validCb = () => {};
 		});
 
-		it('should return false when invoked without arguments', function () {
-			expect(slaveWampServer.getCall()).to.be.not.ok;
+		it('should throw an error when invoked without arguments', () => {
+			expect(() => {
+				slaveWampServer.saveCall();
+			}).to.throw('Cannot save a call for wrong InterProcessRPCRequest request');
+			expect(slaveWampServer.interProcessRPC).to.be.empty();
 		});
 
-		it('should return false when a call does not exist', function () {
-			expect(slaveWampServer.getCall(validRequest)).to.be.not.ok;
+		it('should throw an error when invoked without socket id', () => {
+			delete validRequest.socketId;
+			expect(() => {
+				slaveWampServer.saveCall(validRequest, validCb);
+			}).to.throw('Cannot save a call for wrong InterProcessRPCRequest request');
+			expect(slaveWampServer.interProcessRPC).to.be.empty();
 		});
 
-		describe('when call exists', function () {
+		it('should throw an error when invoked without procedure', () => {
+			delete validRequest.procedure;
+			expect(() => {
+				slaveWampServer.saveCall(validRequest, validCb);
+			}).to.throw('Cannot save a call for wrong InterProcessRPCRequest request');
+			expect(slaveWampServer.interProcessRPC).to.be.empty();
+		});
 
-			beforeEach(function () {
+		it('should throw an error when invoked without signature', () => {
+			delete validRequest.signature;
+			expect(() => {
+				slaveWampServer.saveCall(validRequest, validCb);
+			}).to.throw('Cannot save a call for wrong InterProcessRPCRequest request');
+			expect(slaveWampServer.interProcessRPC).to.be.empty();
+		});
+
+		it('should throw an error when invoked without callback', () => {
+			expect(() => {
+				slaveWampServer.saveCall(validRequest);
+			}).to.throw('Cannot save a call without callback');
+			expect(slaveWampServer.interProcessRPC).to.be.empty();
+		});
+
+		it('should create a new entry in interProcessRPC for valid request', () => {
+			slaveWampServer.saveCall(validRequest, validCb);
+			expect(slaveWampServer.interProcessRPC).to.have.property(validSocketId);
+			expect(slaveWampServer.interProcessRPC[validSocketId]).to.have.property(validProcedure);
+			expect(slaveWampServer.interProcessRPC[validSocketId][validProcedure]).to.have.property(validSignature).to.be.a('function');
+		});
+
+		it('should create multiple entries in interProcessRPC for multiple valid requests', () => {
+			slaveWampServer.saveCall(validRequest, validCb);
+			const validRequestB = validRequest;
+			validRequestB.socketId += 'B';
+			validRequestB.procedure += 'B';
+			validRequestB.signature += 'B';
+			slaveWampServer.saveCall(validRequestB, validCb);
+			expect(slaveWampServer.interProcessRPC).to.have.property(validSocketId);
+			expect(slaveWampServer.interProcessRPC[validSocketId]).to.have.property(validProcedure);
+			expect(slaveWampServer.interProcessRPC[validSocketId][validProcedure])
+				.to.have.property(validSignature).to.be.a('function');
+			expect(slaveWampServer.interProcessRPC).to.have.property(validRequestB.socketId);
+			expect(slaveWampServer.interProcessRPC[validRequestB.socketId])
+				.to.have.property(validRequestB.procedure);
+			expect(slaveWampServer.interProcessRPC[validRequestB.socketId][validRequestB.procedure])
+				.to.have.property(validRequestB.signature).to.be.a('function');
+		});
+	});
+
+	describe('deleteCall', () => {
+		let validSocketId;
+		let validProcedure;
+		let validSignature;
+		let validRequest;
+
+		beforeEach(() => {
+			validSocketId = 'validSocketId';
+			validProcedure = 'validProcedure';
+			validSignature = 'validSignature';
+			validRequest = {
+				socketId: validSocketId,
+				procedure: validProcedure,
+				signature: validSignature,
+			};
+		});
+
+		it('should throw an error when invoked without arguments', () => {
+			expect(() => {
+				slaveWampServer.deleteCall();
+			}).to.throw('Cannot delete a call for wrong InterProcessRPCRequest request');
+			expect(slaveWampServer.interProcessRPC).to.be.empty();
+		});
+
+		it('should throw an error when invoked without socket id', () => {
+			delete validRequest.socketId;
+			expect(() => {
+				slaveWampServer.deleteCall(validRequest);
+			}).to.throw('Cannot delete a call for wrong InterProcessRPCRequest request');
+			expect(slaveWampServer.interProcessRPC).to.be.empty();
+		});
+
+		it('should throw an error when invoked without procedure', () => {
+			delete validRequest.procedure;
+			expect(() => {
+				slaveWampServer.deleteCall(validRequest);
+			}).to.throw('Cannot delete a call for wrong InterProcessRPCRequest request');
+			expect(slaveWampServer.interProcessRPC).to.be.empty();
+		});
+
+		it('should throw an error when invoked without signature', () => {
+			delete validRequest.signature;
+			expect(() => {
+				slaveWampServer.deleteCall(validRequest);
+			}).to.throw('Cannot delete a call for wrong InterProcessRPCRequest request');
+			expect(slaveWampServer.interProcessRPC).to.be.empty();
+		});
+
+		it('should throw an error when entry does not exist', () => {
+			expect(() => {
+				slaveWampServer.deleteCall(validRequest);
+			}).to.throw('There is no internal requests registered for socket: validSocketId, procedure: validProcedure with signature validSignature');
+		});
+
+		describe('when call exists', () => {
+			beforeEach(() => {
 				slaveWampServer.interProcessRPC = {
 					[validSocketId]: {
 						[validProcedure]: {
-							[validSignature]: () => {}
-						}
-					}
+							[validSignature]: () => {},
+						},
+					},
 				};
 			});
 
-			it('should return false when invoked without socket id', function () {
-				delete validRequest.socketId;
-				expect(slaveWampServer.getCall()).to.be.not.ok;
-			});
-
-			it('should return false when invoked without procedure', function () {
-				delete validRequest.procedure;
-				expect(slaveWampServer.getCall()).to.be.not.ok;
-			});
-
-			it('should return false when invoked without signature', function () {
-				delete validRequest.signature;
-				expect(slaveWampServer.getCall()).to.be.not.ok;
-			});
-
-			it('should return false when invoked without signature', function () {
-				delete validRequest.signature;
-				expect(slaveWampServer.getCall()).to.be.not.ok;
-			});
-
-			it('should return true when invoked with valid request', function () {
-				expect(slaveWampServer.getCall(validRequest)).to.be.ok;
+			it('should delete existing signature call for procedure in interProcessRPC', () => {
+				slaveWampServer.deleteCall(validRequest);
+				expect(slaveWampServer.interProcessRPC[validSocketId][validProcedure]).to.be.empty();
 			});
 		});
 	});
+
+	describe('getCall', () => {
+		let validSocketId;
+		let validProcedure;
+		let validSignature;
+		let validRequest;
+
+		beforeEach(() => {
+			validSocketId = 'validSocketId';
+			validProcedure = 'validProcedure';
+			validSignature = 'validSignature';
+			validRequest = {
+				socketId: validSocketId,
+				procedure: validProcedure,
+				signature: validSignature,
+			};
+		});
+
+		it('should return false when invoked without arguments', () => {
+			expect(slaveWampServer.getCall()).to.be.not.ok();
+		});
+
+		it('should return false when a call does not exist', () => {
+			expect(slaveWampServer.getCall(validRequest)).to.be.not.ok();
+		});
+
+		describe('when call exists', () => {
+			beforeEach(() => {
+				slaveWampServer.interProcessRPC = {
+					[validSocketId]: {
+						[validProcedure]: {
+							[validSignature]: () => {},
+						},
+					},
+				};
+			});
+
+			it('should return false when invoked without socket id', () => {
+				delete validRequest.socketId;
+				expect(slaveWampServer.getCall()).to.be.not.ok();
+			});
+
+			it('should return false when invoked without procedure', () => {
+				delete validRequest.procedure;
+				expect(slaveWampServer.getCall()).to.be.not.ok();
+			});
+
+			it('should return false when invoked without signature', () => {
+				delete validRequest.signature;
+				expect(slaveWampServer.getCall()).to.be.not.ok();
+			});
+
+			it('should return false when invoked without signature', () => {
+				delete validRequest.signature;
+				expect(slaveWampServer.getCall()).to.be.not.ok();
+			});
+
+			it('should return true when invoked with valid request', () => {
+				expect(slaveWampServer.getCall(validRequest)).to.be.ok();
+			});
+		});
+	});
+});
+
+after(() => {
+	clock.restore();
 });

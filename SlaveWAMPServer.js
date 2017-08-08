@@ -50,6 +50,10 @@ class SlaveWAMPServer extends WAMPServer {
 		});
 	}
 
+	/**
+	 * @param {object} request
+	 * @returns {{}}
+	 */
 	static normalizeRequest(request = {}) {
 		if (!request.procedure || typeof request.procedure !== 'string') {
 			throw new Error(`Wrong format of requested procedure: ${request.procedure}`);
@@ -62,6 +66,12 @@ class SlaveWAMPServer extends WAMPServer {
 		return request;
 	}
 
+	/**
+	 * @param {string} procedure
+	 * @param {*} data
+	 * @param {string} socketId
+	 * @param {Function} cb
+	 */
 	sendToMaster(procedure, data, socketId, cb) {
 		const req = SlaveWAMPServer.normalizeRequest({
 			type: schemas.InterProcessRPCRequestSchema.id,
@@ -76,6 +86,11 @@ class SlaveWAMPServer extends WAMPServer {
 		this.saveCall(req, cb);
 	}
 
+	/**
+	 * @param {WAMPRequestSchema} request
+	 * @param {object} socket
+	 * @returns {*}
+	 */
 	processWAMPRequest(request, socket) {
 		if (v.validate(request, schemas.WAMPRequestSchema).valid) {
 			request.socketId = socket.id;
@@ -91,19 +106,46 @@ class SlaveWAMPServer extends WAMPServer {
 		}
 	}
 
+	/**
+	 * @param {string} socketId
+	 * @returns {boolean}
+	 */
 	onSocketDisconnect(socketId) {
 		return delete this.interProcessRPC[socketId];
 	}
 
-	getCall(request) {
-		return get(this.interProcessRPC, `${request.socketId}.${request.procedure}.${request.signature}`, false);
-	}
 
-	saveCall(request, cb) {
+	/**
+	 * @param {InterProcessRPCRequestSchema} request
+	 * @param {Function} cb
+	 */
+	saveCall(request = {}, cb) {
+		if (!request.socketId || !request.procedure || !request.signature) {
+			throw new Error('Cannot save a call for wrong InterProcessRPCRequest request');
+		}
+		if (!cb) {
+			throw new Error('Cannot save a call without callback');
+		}
 		return setWith(this.interProcessRPC, `${request.socketId}.${request.procedure}.${request.signature}`, cb, Object);
 	}
 
-	deleteCall(request) {
+	/**
+	 * @param {InterProcessRPCRequestSchema} request
+	 */
+	getCall(request = {}) {
+		return get(this.interProcessRPC, `${request.socketId}.${request.procedure}.${request.signature}`, false);
+	}
+
+	/**
+	 * @param {InterProcessRPCResponseSchema} request
+	 */
+	deleteCall(request = {}) {
+		if (!request.socketId || !request.procedure || !request.signature) {
+			throw new Error('Cannot delete a call for wrong InterProcessRPCRequest request');
+		}
+		if (!this.getCall(request)) {
+			throw new Error(`There is no internal requests registered for socket: ${request.socketId}, procedure: ${request.procedure} with signature ${request.signature}`);
+		}
 		return delete this.interProcessRPC[request.socketId][request.procedure][request.signature];
 	}
 

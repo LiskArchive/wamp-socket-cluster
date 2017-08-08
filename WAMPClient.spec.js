@@ -45,6 +45,12 @@ describe('WAMPClient', () => {
 				propA: 'valueA',
 			};
 
+			before(() => {
+				if (Math.random.restore) {
+					Math.random.restore();
+				}
+			});
+
 			beforeEach(() => {
 				wampClient = new WAMPClient(fakeSocket);
 				wampSocket = {
@@ -241,6 +247,10 @@ describe('WAMPClient', () => {
 						expect(err.toString()).equal(`Error: Unable to find resolving function for procedure ${procedure} with signature ${sampleWampServerResponse.signature}`);
 						done();
 					}
+				});
+
+				after(() => {
+					Math.random.restore();
 				});
 			});
 		});

@@ -37,7 +37,7 @@ class WAMPServer {
 				return;
 			}
 			if (schemas.isValid(parsedRequest, schemas.WAMPRequestSchema)) {
-				this.processWAMPRequest(request, socket);
+				this.processWAMPRequest(parsedRequest, socket);
 			}
 		});
 

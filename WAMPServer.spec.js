@@ -112,6 +112,4 @@ describe('WAMPServer', () => {
 			expect(endpoint.procedureA.calledWith('valueA')).to.be.ok();
 		});
 	});
-
-
 });
