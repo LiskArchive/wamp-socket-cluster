@@ -224,12 +224,14 @@ describe('SlaveWAMPServer', () => {
 	});
 
 	describe('sendToMaster', () => {
+		let mathRandomStub;
+
 		before(() => {
-			Math.random = sinon.stub(Math, 'random').returns(0);
+			mathRandomStub = sinon.stub(Math, 'random').returns(0);
 		});
 
 		after(() => {
-			Math.random.restore();
+			mathRandomStub.restore();
 		});
 
 		it('should pass correct InterProcessRPCRequestSchema compatible request to sendToMaster function', () => {

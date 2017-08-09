@@ -144,12 +144,14 @@ describe('WAMPClient', () => {
 			});
 
 			describe('resolving responses', () => {
+				let mathRandomStub;
+
 				before(() => {
-					Math.random = sinon.stub(Math, 'random').returns(0);
+					mathRandomStub = sinon.stub(Math, 'random').returns(0);
 				});
 
 				after(() => {
-					Math.random.restore();
+					mathRandomStub.restore();
 				});
 
 

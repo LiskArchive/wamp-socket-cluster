@@ -131,15 +131,16 @@ describe('MasterWAMPServer', () => {
 			describe('workerExit', () => {
 				let onWorkerExitHandler;
 				let validWorker;
+				let masterWAMPServerReplyStub;
 
 				beforeEach(() => {
 					onWorkerExitHandler = fakeSCServer.on.getCalls()[2].args[1];
 					validWorker = { id: validWorkerId };
-					masterWAMPServer.reply = sinon.stub(masterWAMPServer, 'reply');
+					masterWAMPServerReplyStub = sinon.stub(masterWAMPServer, 'reply');
 				});
 
 				after(() => {
-					masterWAMPServer.reply.restore();
+					masterWAMPServerReplyStub.restore();
 				});
 
 				it('should not modify empty workerIndices array', () => {
