@@ -173,7 +173,7 @@ describe('SlaveWAMPServer', () => {
 		it('should pass request forward to master if procedure is not registered in SlaveWAMPServer', () => {
 			slaveWAMPServer.processWAMPRequest(validWAMPRequest, socketMock);
 			expect(workerMock.sendToMaster.calledOnce).to.be.true();
-			expect(workerMock.sendToMaster.calledWith(validSlaveToMasterRequest)).to.be.true();
+			expect(workerMock.sendToMaster.calledWithExactly(validSlaveToMasterRequest)).to.be.true();
 		});
 
 		it('should invoke procedure on SlaveWAMPServer if registered before', () => {
@@ -235,7 +235,7 @@ describe('SlaveWAMPServer', () => {
 		it('should pass correct InterProcessRPCRequestSchema compatible request to sendToMaster function', () => {
 			slaveWAMPServer.sendToMaster(validProcedure, validData, validSocketId, validCb);
 			expect(workerMock.sendToMaster.calledOnce).to.be.true();
-			expect(workerMock.sendToMaster.calledWith({
+			expect(workerMock.sendToMaster.calledWithExactly({
 				type: '/InterProcessRPCRequestSchema',
 				procedure: validProcedure,
 				data: validData,
