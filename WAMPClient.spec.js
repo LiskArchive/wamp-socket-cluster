@@ -145,7 +145,7 @@ describe('WAMPClient', () => {
 
 			describe('resolving responses', () => {
 				before(() => {
-					sinon.stub(Math, 'random').returns(0);
+					Math.random = sinon.stub(Math, 'random').returns(0);
 				});
 
 				after(() => {

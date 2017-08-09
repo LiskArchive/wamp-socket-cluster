@@ -118,7 +118,7 @@ class SlaveWAMPServer extends WAMPServer {
 	/**
 	 * @param {InterProcessRPCRequestSchema}[request={}] request
 	 * @param {Function} cb
-	 * @returns {undefined}
+	 * @returns {Object}
 	 */
 	saveCall(request = {}, cb) {
 		if (!request.socketId || !request.procedure || !request.signature) {

@@ -105,7 +105,7 @@ describe('MasterWAMPServer', () => {
 				beforeEach(() => {
 					onWorkerStartHandler = fakeSCServer.on.getCalls()[0].args[1];
 					validWorker = { id: validWorkerId };
-					sinon.stub(masterWAMPServer, 'reply');
+					masterWAMPServer.reply = sinon.stub(masterWAMPServer, 'reply');
 				});
 
 				after(() => {
@@ -135,7 +135,7 @@ describe('MasterWAMPServer', () => {
 				beforeEach(() => {
 					onWorkerExitHandler = fakeSCServer.on.getCalls()[2].args[1];
 					validWorker = { id: validWorkerId };
-					sinon.stub(masterWAMPServer, 'reply');
+					masterWAMPServer.reply = sinon.stub(masterWAMPServer, 'reply');
 				});
 
 				after(() => {
