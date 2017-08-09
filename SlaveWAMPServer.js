@@ -110,7 +110,6 @@ class SlaveWAMPServer extends WAMPServer {
 	/**
 	 * @param {string} socketId
 	 * @returns {boolean}
-	 * @returns {undefined}
 	 */
 	onSocketDisconnect(socketId) {
 		return delete this.interProcessRPC[socketId];
@@ -123,7 +122,7 @@ class SlaveWAMPServer extends WAMPServer {
 	 */
 	saveCall(request = {}, cb) {
 		if (!request.socketId || !request.procedure || !request.signature) {
-			throw new Error('Cannot save a call for wrong InterProcessRPCRequest request');
+			throw new Error(`Cannot save a call for wrong InterProcessRPCRequest request: ${JSON.stringify(request)}`);
 		}
 		if (!cb) {
 			throw new Error('Cannot save a call without callback');
@@ -133,7 +132,7 @@ class SlaveWAMPServer extends WAMPServer {
 
 	/**
 	 * @param {InterProcessRPCRequestSchema}[request={}] request
-	 * @returns {InterProcessRPCRequestSchema|false}
+	 * @returns {Function|false}
 	 */
 	getCall(request = {}) {
 		return get(this.interProcessRPC, `${request.socketId}.${request.procedure}.${request.signature}`, false);
@@ -146,10 +145,10 @@ class SlaveWAMPServer extends WAMPServer {
 	 */
 	deleteCall(request = {}) {
 		if (!request.socketId || !request.procedure || !request.signature) {
-			throw new Error('Cannot delete a call for wrong InterProcessRPCRequest request');
+			throw new Error(`Cannot delete a call for wrong InterProcessRPCRequest request: ${JSON.stringify(request)}`);
 		}
 		if (!this.getCall(request)) {
-			throw new Error(`There is no internal requests registered for socket: ${request.socketId}, procedure: ${request.procedure} with signature ${request.signature}`);
+			throw new Error(`There are no internal requests registered for socket: ${request.socketId}, procedure: ${request.procedure} with signature ${request.signature}`);
 		}
 		return delete this.interProcessRPC[request.socketId][request.procedure][request.signature];
 	}

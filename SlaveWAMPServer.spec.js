@@ -5,17 +5,8 @@ const SlaveWAMPServer = require('./SlaveWAMPServer');
 
 const { expect } = require('./testSetup.spec');
 
-let clock;
-
-before(() => {
-	clock = sinon.useFakeTimers(new Date(2020, 1, 1).getTime());
-});
-
-after(() => {
-	clock.restore();
-});
-
 describe('SlaveWAMPServer', () => {
+	let clock;
 	let workerMock;
 	let slaveWAMPServer;
 	let validData;
@@ -53,6 +44,14 @@ describe('SlaveWAMPServer', () => {
 		};
 	});
 
+	before(() => {
+		clock = sinon.useFakeTimers(new Date(2020, 1, 1).getTime());
+	});
+
+	after(() => {
+		clock.restore();
+	});
+
 	describe('constructor', () => {
 		it('create SlaveWAMPServer with worker field', () => {
 			expect(slaveWAMPServer).to.have.property('worker').to.be.a('object').and.to.have.property('id').equal(0);
@@ -72,7 +71,7 @@ describe('SlaveWAMPServer', () => {
 
 		it('create SlaveWAMPServer and register event listener from master process', () => {
 			expect(workerMock.on.calledOnce).to.be.true();
-			expect(workerMock.on.calledWith('masterMessage')).to.be.ok();
+			expect(workerMock.on.calledWith('masterMessage')).to.be.true();
 		});
 	});
 
@@ -174,7 +173,7 @@ describe('SlaveWAMPServer', () => {
 		it('should pass request forward to master if procedure is not registered in SlaveWAMPServer', () => {
 			slaveWAMPServer.processWAMPRequest(validWAMPRequest, socketMock);
 			expect(workerMock.sendToMaster.calledOnce).to.be.true();
-			expect(workerMock.sendToMaster.calledWith(validSlaveToMasterRequest)).to.be.ok();
+			expect(workerMock.sendToMaster.calledWith(validSlaveToMasterRequest)).to.be.true();
 		});
 
 		it('should invoke procedure on SlaveWAMPServer if registered before', () => {
@@ -187,9 +186,9 @@ describe('SlaveWAMPServer', () => {
 				type: '/WAMPRequest',
 				socketId: 'validSocketId',
 				workerId: 0,
-			})).to.be.ok();
+			})).to.be.true();
 
-			expect(workerMock.sendToMaster.called).not.to.be.ok();
+			expect(workerMock.sendToMaster.called).not.to.be.true();
 		});
 
 		it('should invoke procedure on SlaveWAMPServer if reassigned before', () => {
@@ -202,9 +201,9 @@ describe('SlaveWAMPServer', () => {
 				type: '/WAMPRequest',
 				socketId: 'validSocketId',
 				workerId: 0,
-			})).to.be.ok();
+			})).to.be.true();
 
-			expect(workerMock.sendToMaster.called).not.to.be.ok();
+			expect(workerMock.sendToMaster.called).not.to.be.true();
 		});
 
 		it('should invoke procedure on SlaveWAMPServer if it was registered on both WAMPServer and SlaveWAMPServer', () => {
@@ -218,9 +217,9 @@ describe('SlaveWAMPServer', () => {
 				type: '/WAMPRequest',
 				socketId: 'validSocketId',
 				workerId: 0,
-			})).to.be.ok();
+			})).to.be.true();
 
-			expect(workerMock.sendToMaster.called).not.to.be.ok();
+			expect(workerMock.sendToMaster.called).not.to.be.true();
 		});
 	});
 
@@ -243,7 +242,7 @@ describe('SlaveWAMPServer', () => {
 				socketId: validSocketId,
 				workerId: 0,
 				signature: validSignature,
-			})).to.be.ok();
+			})).to.be.true();
 		});
 
 		it('should pass create a new entry in interProcessRPC map', () => {
@@ -314,7 +313,7 @@ describe('SlaveWAMPServer', () => {
 
 		it('should create multiple entries in interProcessRPC for multiple valid requests', () => {
 			slaveWAMPServer.saveCall(validRequest, validCb);
-			const validRequestB = validRequest;
+			const validRequestB = Object.assign({}, validRequest);
 			validRequestB.socketId += 'B';
 			validRequestB.procedure += 'B';
 			validRequestB.signature += 'B';
@@ -361,7 +360,7 @@ describe('SlaveWAMPServer', () => {
 		it('should throw an error when entry does not exist', () => {
 			expect(() => {
 				slaveWAMPServer.deleteCall(validRequest);
-			}).to.throw(`There is no internal requests registered for socket: ${validSocketId}, procedure: ${validProcedure} with signature ${validSignature}`);
+			}).to.throw(`There are no internal requests registered for socket: ${validSocketId}, procedure: ${validProcedure} with signature ${validSignature}`);
 		});
 
 		describe('when call exists', () => {
@@ -378,11 +377,11 @@ describe('SlaveWAMPServer', () => {
 
 	describe('getCall', () => {
 		it('should return false when invoked without arguments', () => {
-			expect(slaveWAMPServer.getCall()).to.be.not.ok();
+			expect(slaveWAMPServer.getCall()).to.be.false();
 		});
 
 		it('should return false when a call does not exist', () => {
-			expect(slaveWAMPServer.getCall(validRequest)).to.be.not.ok();
+			expect(slaveWAMPServer.getCall(validRequest)).to.be.false();
 		});
 
 		describe('when call exists', () => {
@@ -392,21 +391,21 @@ describe('SlaveWAMPServer', () => {
 
 			it('should return false when invoked without socket id', () => {
 				delete validRequest.socketId;
-				expect(slaveWAMPServer.getCall()).to.be.not.ok();
+				expect(slaveWAMPServer.getCall()).to.be.false();
 			});
 
 			it('should return false when invoked without procedure', () => {
 				delete validRequest.procedure;
-				expect(slaveWAMPServer.getCall()).to.be.not.ok();
+				expect(slaveWAMPServer.getCall()).to.be.false();
 			});
 
 			it('should return false when invoked without signature', () => {
 				delete validRequest.signature;
-				expect(slaveWAMPServer.getCall()).to.be.not.ok();
+				expect(slaveWAMPServer.getCall()).to.be.false();
 			});
 
-			it('should return true when invoked with valid request', () => {
-				expect(slaveWAMPServer.getCall(validRequest)).to.be.ok();
+			it('should return valid callback when invoked with valid request', () => {
+				expect(slaveWAMPServer.getCall(validRequest)).to.be.a('function');
 			});
 		});
 	});

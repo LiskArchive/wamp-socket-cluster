@@ -4,6 +4,7 @@ const sinon = require('sinon');
 const { expect } = require('./testSetup.spec');
 const MasterWAMPServer = require('./MasterWAMPServer');
 const MasterWAMPRequestSchema = require('./schemas').MasterWAMPRequestSchema;
+const WAMPResponseSchema = require('./schemas').WAMPResponseSchema;
 
 describe('MasterWAMPServer', () => {
 	let fakeSCServer;
@@ -26,15 +27,15 @@ describe('MasterWAMPServer', () => {
 
 		it('should start listening on "workerStart"', () => {
 			new MasterWAMPServer(fakeSCServer);
-			expect(fakeSCServer.on.called).to.be.ok();
-			expect(fakeSCServer.on.calledWith('workerStart')).to.be.ok();
+			expect(fakeSCServer.on.called).to.be.true();
+			expect(fakeSCServer.on.calledWith('workerStart')).to.be.true();
 			expect(fakeSCServer.on.getCalls()[0].args[1]).to.be.a('function');
 		});
 
 		it('should start listening on "workerMessage"', () => {
 			new MasterWAMPServer(fakeSCServer);
-			expect(fakeSCServer.on.called).to.be.ok();
-			expect(fakeSCServer.on.calledWith('workerMessage')).to.be.ok();
+			expect(fakeSCServer.on.called).to.be.true();
+			expect(fakeSCServer.on.calledWith('workerMessage')).to.be.true();
 			expect(fakeSCServer.on.getCalls()[1].args[1]).to.be.a('function');
 		});
 
@@ -71,28 +72,29 @@ describe('MasterWAMPServer', () => {
 
 				it('should call processWAMPRequest when proper InterProcessRPCRequestSchema param passed to "workerMessage" handler', () => {
 					onWorkerMessageHandler(validWorkerId, validInterProcessRPCRequest);
-					expect(masterWAMPServer.processWAMPRequest.called).to.be.ok();
+					expect(masterWAMPServer.processWAMPRequest.called).to.be.true();
 				});
 
 				it('should call processWAMPRequest when proper MasterWAMPRequest param passed to "workerMessage" handler', () => {
 					onWorkerMessageHandler(validWorkerId, validMasterWAMPRequest);
-					expect(masterWAMPServer.processWAMPRequest.called).to.be.ok();
+					expect(masterWAMPServer.processWAMPRequest.called).to.be.true();
 				});
 
 				it('should call processWAMPRequest when proper MasterWAMPRequestSchema with received request', () => {
 					onWorkerMessageHandler(validWorkerId, validMasterWAMPRequest);
-					expect(masterWAMPServer.processWAMPRequest.calledWith(validMasterWAMPRequest)).to.be.ok();
+					expect(masterWAMPServer.processWAMPRequest.calledWith(validMasterWAMPRequest))
+						.to.be.true();
 				});
 
 				it('should not call processWAMPRequest when invalid MasterWAMPRequestSchema passed', () => {
 					const invalidMasterWAMPCall = Object.assign({}, validMasterWAMPRequest, { type: 'invalid' });
 					onWorkerMessageHandler(validWorkerId, invalidMasterWAMPCall);
-					expect(masterWAMPServer.processWAMPRequest.called).not.to.be.ok();
+					expect(masterWAMPServer.processWAMPRequest.called).not.to.be.true();
 				});
 
 				it('should not call processWAMPRequest when empty request passed', () => {
 					onWorkerMessageHandler(validWorkerId, null);
-					expect(masterWAMPServer.processWAMPRequest.called).not.to.be.ok();
+					expect(masterWAMPServer.processWAMPRequest.called).not.to.be.true();
 				});
 			});
 
@@ -112,17 +114,17 @@ describe('MasterWAMPServer', () => {
 
 				it('should call reply function with null as socket with validWorker', () => {
 					onWorkerStartHandler(validWorker);
-					expect(masterWAMPServer.reply.calledWith(null)).to.be.ok();
+					expect(masterWAMPServer.reply.calledWith(null)).to.be.true();
 				});
 
 				it('should call reply function with valid MasterConfigRequestSchema', () => {
 					onWorkerStartHandler(validWorker);
-					expect(masterWAMPServer.reply.args[0][1]).eql({
+					expect(masterWAMPServer.reply.args[0][1]).to.eql({
 						registeredEvents: [],
 						config: {},
 						type: '/MasterConfigRequestSchema',
 						workerId: validWorkerId,
-					}).to.be.ok();
+					});
 				});
 			});
 
@@ -140,7 +142,7 @@ describe('MasterWAMPServer', () => {
 					masterWAMPServer.reply.restore();
 				});
 
-				it('should not modify empty workerIndices map', () => {
+				it('should not modify empty workerIndices array', () => {
 					onWorkerExitHandler(validWorker);
 					expect(masterWAMPServer.workerIndices).to.be.empty();
 				});
@@ -151,7 +153,7 @@ describe('MasterWAMPServer', () => {
 					expect(masterWAMPServer.workerIndices).to.be.empty();
 				});
 
-				it('should remove the worker index from beginning of the workerIndices array if added previously', () => {
+				it('should remove the worker index from the beginning of the workerIndices array if added previously', () => {
 					masterWAMPServer.workerIndices = [0, 1, 2];
 					onWorkerExitHandler(validWorker);
 					expect(masterWAMPServer.workerIndices).to.eql([1, 2]);
@@ -179,36 +181,33 @@ describe('MasterWAMPServer', () => {
 		beforeEach(() => {
 			validRequest = {
 				workerId: validWorkerId,
-				type: '/MasterWAMPRequest',
+				type: MasterWAMPRequestSchema.id,
 			};
 			validData = { validKey: 'validValue' };
 		});
 
 		it('should invoke socketCluster.sendToWorker with a valid success WAMPResponse', () => {
 			masterWAMPServer.reply(null, validRequest, null, validData);
-			expect(masterWAMPServer.socketCluster.sendToWorker.calledWith(validWorkerId)).to.be.ok();
-			expect(masterWAMPServer.socketCluster.sendToWorker.args[0][1]).eql({
+			expect(masterWAMPServer.socketCluster.sendToWorker.calledWith(validWorkerId)).to.be.true();
+			expect(masterWAMPServer.socketCluster.sendToWorker.args[0][1]).to.eql({
 				workerId: 0,
 				success: true,
-				data: {
-					validKey: 'validValue',
-				},
-				type: '/WAMPResponse',
+				data: validData,
+				type: WAMPResponseSchema.id,
 				error: null,
 			});
 		});
 
-		it('should invoke socketCluster.sendToWorker with a valid error WAMPResponse in case of passing error message', () => {
-			masterWAMPServer.reply(null, validRequest, 'Custom error', validData);
-			expect(masterWAMPServer.socketCluster.sendToWorker.calledWith(validWorkerId)).to.be.ok();
+		it('should invoke socketCluster.sendToWorker with a valid error WAMPResponse', () => {
+			const errorMessage = 'Custom error';
+			masterWAMPServer.reply(null, validRequest, errorMessage, validData);
+			expect(masterWAMPServer.socketCluster.sendToWorker.calledWith(validWorkerId)).to.be.true();
 			expect(masterWAMPServer.socketCluster.sendToWorker.args[0][1]).eql({
 				workerId: 0,
 				success: false,
-				data: {
-					validKey: 'validValue',
-				},
-				type: '/WAMPResponse',
-				error: 'Custom error',
+				data: validData,
+				type: WAMPResponseSchema.id,
+				error: errorMessage,
 			});
 		});
 	});

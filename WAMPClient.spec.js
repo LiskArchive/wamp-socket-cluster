@@ -166,7 +166,7 @@ describe('WAMPClient', () => {
 						},
 					};
 
-					expect(v.validate(sampleWampServerResponse, WAMPResponseSchema).valid).to.be.ok();
+					expect(v.validate(sampleWampServerResponse, WAMPResponseSchema).valid).to.be.true();
 
 					wampSocket.wampSend(procedure).then((data) => {
 						expect(data).equal(sampleWampServerResponse.data);

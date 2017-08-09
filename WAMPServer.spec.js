@@ -19,7 +19,7 @@ describe('WAMPServer', () => {
 			};
 			socket = new WAMPServer().upgradeToWAMP(socket);
 			expect(socket.on.calledOnce).to.be.true();
-			expect(socket.on.calledWith('raw')).to.be.ok();
+			expect(socket.on.calledWith('raw')).to.be.true();
 		});
 	});
 
@@ -109,7 +109,7 @@ describe('WAMPServer', () => {
 			wampServer.registerRPCEndpoints(endpoint);
 			wampServer.processWAMPRequest({ procedure: 'procedureA', data: 'valueA' }, socket);
 			expect(endpoint.procedureA.calledOnce).to.be.true();
-			expect(endpoint.procedureA.calledWith('valueA')).to.be.ok();
+			expect(endpoint.procedureA.calledWith('valueA')).to.be.true();
 		});
 	});
 });
