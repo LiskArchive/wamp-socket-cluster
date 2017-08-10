@@ -273,7 +273,7 @@ describe('SlaveWAMPServer', () => {
 
 	describe('saveCall', () => {
 		it('should throw an error when invoked without arguments', () => {
-			expect(slaveWAMPServer.saveCall).to.throw('Cannot save a call for wrong InterProcessRPCRequest request');
+			expect(slaveWAMPServer.saveCall).to.throw('Internal error while attempting to save InterProcessRPCRequest: empty request');
 			expect(slaveWAMPServer.interProcessRPC).to.be.empty();
 		});
 
@@ -281,7 +281,7 @@ describe('SlaveWAMPServer', () => {
 			delete validRequest.socketId;
 			expect(() => {
 				slaveWAMPServer.saveCall(validRequest, validCb);
-			}).to.throw('Cannot save a call for wrong InterProcessRPCRequest request');
+			}).to.throw('Internal error while attempting to save InterProcessRPCRequest: missing socketId');
 			expect(slaveWAMPServer.interProcessRPC).to.be.empty();
 		});
 
@@ -289,7 +289,7 @@ describe('SlaveWAMPServer', () => {
 			delete validRequest.procedure;
 			expect(() => {
 				slaveWAMPServer.saveCall(validRequest, validCb);
-			}).to.throw('Cannot save a call for wrong InterProcessRPCRequest request');
+			}).to.throw('Internal error while attempting to save InterProcessRPCRequest: missing procedure');
 			expect(slaveWAMPServer.interProcessRPC).to.be.empty();
 		});
 
@@ -297,7 +297,7 @@ describe('SlaveWAMPServer', () => {
 			delete validRequest.signature;
 			expect(() => {
 				slaveWAMPServer.saveCall(validRequest, validCb);
-			}).to.throw('Cannot save a call for wrong InterProcessRPCRequest request');
+			}).to.throw('Internal error while attempting to save InterProcessRPCRequest: missing signature');
 			expect(slaveWAMPServer.interProcessRPC).to.be.empty();
 		});
 
@@ -331,7 +331,7 @@ describe('SlaveWAMPServer', () => {
 
 	describe('deleteCall', () => {
 		it('should throw an error when invoked without arguments', () => {
-			expect(slaveWAMPServer.deleteCall).to.throw('Cannot delete a call for wrong InterProcessRPCRequest request');
+			expect(slaveWAMPServer.deleteCall).to.throw('Internal error while attempting to delete InterProcessRPCRequest: empty request');
 			expect(slaveWAMPServer.interProcessRPC).to.be.empty();
 		});
 
@@ -339,7 +339,7 @@ describe('SlaveWAMPServer', () => {
 			delete validRequest.socketId;
 			expect(() => {
 				slaveWAMPServer.deleteCall(validRequest);
-			}).to.throw('Cannot delete a call for wrong InterProcessRPCRequest request');
+			}).to.throw('Internal error while attempting to delete InterProcessRPCRequest: missing socketId');
 			expect(slaveWAMPServer.interProcessRPC).to.be.empty();
 		});
 
@@ -347,7 +347,7 @@ describe('SlaveWAMPServer', () => {
 			delete validRequest.procedure;
 			expect(() => {
 				slaveWAMPServer.deleteCall(validRequest);
-			}).to.throw('Cannot delete a call for wrong InterProcessRPCRequest request');
+			}).to.throw('Internal error while attempting to delete InterProcessRPCRequest: missing procedure');
 			expect(slaveWAMPServer.interProcessRPC).to.be.empty();
 		});
 
@@ -355,7 +355,7 @@ describe('SlaveWAMPServer', () => {
 			delete validRequest.signature;
 			expect(() => {
 				slaveWAMPServer.deleteCall(validRequest);
-			}).to.throw('Cannot delete a call for wrong InterProcessRPCRequest request');
+			}).to.throw('Internal error while attempting to delete InterProcessRPCRequest: missing signature');
 			expect(slaveWAMPServer.interProcessRPC).to.be.empty();
 		});
 

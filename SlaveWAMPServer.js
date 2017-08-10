@@ -116,13 +116,22 @@ class SlaveWAMPServer extends WAMPServer {
 	}
 
 	/**
-	 * @param {InterProcessRPCRequestSchema}[request={}] request
+	 * @param {InterProcessRPCRequestSchema} request
 	 * @param {Function} cb
 	 * @returns {Object}
 	 */
-	saveCall(request = {}, cb) {
-		if (!request.socketId || !request.procedure || !request.signature) {
-			throw new Error(`Cannot save a call for wrong InterProcessRPCRequest request: ${JSON.stringify(request)}`);
+	saveCall(request, cb) {
+		if (!request) {
+			throw new Error('Internal error while attempting to save InterProcessRPCRequest: empty request');
+		}
+		if (!request.socketId) {
+			throw new Error('Internal error while attempting to save InterProcessRPCRequest: missing socketId');
+		}
+		if (!request.procedure) {
+			throw new Error('Internal error while attempting to save InterProcessRPCRequest: missing procedure');
+		}
+		if (!request.signature) {
+			throw new Error('Internal error while attempting to save InterProcessRPCRequest: missing signature');
 		}
 		if (!cb) {
 			throw new Error('Cannot save a call without callback');
@@ -140,12 +149,21 @@ class SlaveWAMPServer extends WAMPServer {
 
 
 	/**
-	 * @param {InterProcessRPCResponseSchema}[request={}] request
+	 * @param {InterProcessRPCResponseSchema} request
 	 * @returns {boolean}
 	 */
-	deleteCall(request = {}) {
-		if (!request.socketId || !request.procedure || !request.signature) {
-			throw new Error(`Cannot delete a call for wrong InterProcessRPCRequest request: ${JSON.stringify(request)}`);
+	deleteCall(request) {
+		if (!request) {
+			throw new Error('Internal error while attempting to delete InterProcessRPCRequest: empty request');
+		}
+		if (!request.socketId) {
+			throw new Error('Internal error while attempting to delete InterProcessRPCRequest: missing socketId');
+		}
+		if (!request.procedure) {
+			throw new Error('Internal error while attempting to delete InterProcessRPCRequest: missing procedure');
+		}
+		if (!request.signature) {
+			throw new Error('Internal error while attempting to delete InterProcessRPCRequest: missing signature');
 		}
 		if (!this.getCall(request)) {
 			throw new Error(`There are no internal requests registered for socket: ${request.socketId}, procedure: ${request.procedure} with signature ${request.signature}`);
