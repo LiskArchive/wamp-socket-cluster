@@ -9,6 +9,7 @@ const WAMPClient = require('./WAMPClient.js');
 const WAMPResponseSchema = require('./schemas').WAMPResponseSchema;
 
 describe('WAMPClient', () => {
+
 	let fakeSocket;
 	let clock;
 	let frozenSignature;
@@ -43,18 +44,18 @@ describe('WAMPClient', () => {
 
 		it('should return passed socket when wampSend and raw event listener are present', () => {
 			fakeSocket.wampSend = () => {};
-			fakeSocket.listeners = () => { return {length: true}};
+			fakeSocket.listeners = () => ({ length: true });
 			const returnedSocket = new WAMPClient().upgradeToWAMP(fakeSocket);
 			expect(returnedSocket).to.equal(fakeSocket);
 		});
 	});
 
 	describe('generateSignature', () => {
-		it('should generate a signature when empty procedureCalls given', () => {
+		it('should generate a signature when empty procedureCalls are passed', () => {
 			expect(WAMPClient.generateSignature({})).not.to.be.empty();
 		});
 
-		it('should generate a signature in a proper format', () => {
+		it('should generate a signature matching expected format', () => {
 			expect(WAMPClient.generateSignature({})).to.be.a('string').and.to.match(/[0-9]{13}_[0-9]{1,6}/);
 		});
 
@@ -96,7 +97,7 @@ describe('WAMPClient', () => {
 				expect(wampClient.callsResolvers[validProcedure][signature].fail).to.be.a('function');
 			});
 
-			it('should create 2 correct entries for calling twice the same procedures', () => {
+			it('should create 2 correct entries for calling twice the same procedure', () => {
 				wampSocket.wampSend(validProcedure);
 				wampSocket.wampSend(validProcedure);
 				expect(Object.keys(wampClient.callsResolvers).length).equal(1);
@@ -244,7 +245,7 @@ describe('WAMPClient', () => {
 					done();
 				});
 
-				it('should throw an error when invalid request signature provided', (done) => {
+				it('should throw an error when provided an invalid request signature', (done) => {
 					invalidWampServerResponse.signature = 'invalid signature';
 					const sampleWampServerResponse = Object.assign(someArgument, invalidWampServerResponse);
 					wampSocket.wampSend(validProcedure);
