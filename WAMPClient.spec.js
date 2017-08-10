@@ -40,6 +40,13 @@ describe('WAMPClient', () => {
 			const wampSocket = new WAMPClient().upgradeToWAMP(fakeSocket);
 			expect(wampSocket).to.have.property('wampSend').to.be.a('function');
 		});
+
+		it('should return passed socket when wampSend and raw event listener are present', () => {
+			fakeSocket.wampSend = () => {};
+			fakeSocket.listeners = () => { return {length: true}};
+			const returnedSocket = new WAMPClient().upgradeToWAMP(fakeSocket);
+			expect(returnedSocket).to.equal(fakeSocket);
+		});
 	});
 
 	describe('generateSignature', () => {
