@@ -12,14 +12,15 @@ describe('WAMPClient', () => {
 	let fakeSocket;
 	let clock;
 	let frozenSignature;
-
-	after(() => {
-		clock.restore();
-	});
+	const validProcedure = 'validProcedure';
 
 	before(() => {
 		clock = sinon.useFakeTimers(new Date(2020, 1, 1).getTime());
 		frozenSignature = `${(new Date()).getTime()}_0`;
+	});
+
+	after(() => {
+		clock.restore();
 	});
 
 	beforeEach(() => {
@@ -42,7 +43,6 @@ describe('WAMPClient', () => {
 	});
 
 	describe('generateSignature', () => {
-
 		it('should generate a signature when empty procedureCalls given', () => {
 			expect(WAMPClient.generateSignature({})).not.to.be.empty();
 		});
@@ -53,7 +53,7 @@ describe('WAMPClient', () => {
 
 		it('should return null while attempting to find a signature fails more than MAX_GENERATE_ATTEMPTS times', () => {
 			const mathRandomStub = sinon.stub(Math, 'random').returns(0);
-			expect(WAMPClient.generateSignature({[frozenSignature]: true})).to.be.null;
+			expect(WAMPClient.generateSignature({ [frozenSignature]: true })).to.be.null();
 			mathRandomStub.restore();
 		});
 	});
@@ -62,8 +62,6 @@ describe('WAMPClient', () => {
 		describe('send', () => {
 			let wampClient;
 			let wampSocket;
-			const procedure = 'procedureA';
-
 			const someArgument = {
 				propA: 'valueA',
 			};
@@ -82,24 +80,22 @@ describe('WAMPClient', () => {
 			});
 
 			it('should create correct entry in wampClient.callsResolvers', () => {
-				const procedure = 'procedureA';
-				wampSocket.wampSend(procedure);
-				expect(Object.keys(wampClient.callsResolvers[procedure]).length).equal(1);
-				const signature = Object.keys(wampClient.callsResolvers[procedure])[0];
+				wampSocket.wampSend(validProcedure);
+				expect(Object.keys(wampClient.callsResolvers[validProcedure]).length).equal(1);
+				const signature = Object.keys(wampClient.callsResolvers[validProcedure])[0];
 
-				expect(wampClient.callsResolvers[procedure][signature]).to.have.all.keys('success', 'fail');
-				expect(wampClient.callsResolvers[procedure][signature].success).to.be.a('function');
-				expect(wampClient.callsResolvers[procedure][signature].fail).to.be.a('function');
+				expect(wampClient.callsResolvers[validProcedure][signature]).to.have.all.keys('success', 'fail');
+				expect(wampClient.callsResolvers[validProcedure][signature].success).to.be.a('function');
+				expect(wampClient.callsResolvers[validProcedure][signature].fail).to.be.a('function');
 			});
 
 			it('should create 2 correct entries for calling twice the same procedures', () => {
-				const procedure = 'procedureA';
-				wampSocket.wampSend(procedure);
-				wampSocket.wampSend(procedure);
+				wampSocket.wampSend(validProcedure);
+				wampSocket.wampSend(validProcedure);
 				expect(Object.keys(wampClient.callsResolvers).length).equal(1);
-				expect(Object.keys(wampClient.callsResolvers[procedure]).length).equal(2);
-				const signatureA = Object.keys(wampClient.callsResolvers[procedure])[0];
-				const signatureB = Object.keys(wampClient.callsResolvers[procedure])[1];
+				expect(Object.keys(wampClient.callsResolvers[validProcedure]).length).equal(2);
+				const signatureA = Object.keys(wampClient.callsResolvers[validProcedure])[0];
+				const signatureB = Object.keys(wampClient.callsResolvers[validProcedure])[1];
 
 				expect(signatureA).to.not.equal(signatureB);
 			});
@@ -117,19 +113,18 @@ describe('WAMPClient', () => {
 
 
 			it('should not create entries after exceeding the MAX_CALLS_ALLOWED limit', () => {
-
 				for (let i = 0; i <= WAMPClient.MAX_CALLS_ALLOWED; i += 1) {
-					wampSocket.wampSend(procedure).catch(() => {});
+					wampSocket.wampSend(validProcedure).catch(() => {});
 				}
 
-				expect(Object.keys(wampClient.callsResolvers[procedure]).length)
+				expect(Object.keys(wampClient.callsResolvers[validProcedure]).length)
 					.equal(WAMPClient.MAX_CALLS_ALLOWED);
 			});
 
 			it('should fail while it is impossible to generate a signature', (done) => {
-				wampClient.callsResolvers = { [procedure]: { [frozenSignature]: true } };
+				wampClient.callsResolvers = { [validProcedure]: { [frozenSignature]: true } };
 				const mathRandomStub = sinon.stub(Math, 'random').returns(0);
-				wampSocket.wampSend(procedure)
+				wampSocket.wampSend(validProcedure)
 					.then(() => done('should not be here'))
 					.catch((error) => {
 						expect(error).to.equal('Failed to generate proper signature 100000 times');
@@ -139,35 +134,28 @@ describe('WAMPClient', () => {
 			});
 
 			it('should invoke socket.emit function', () => {
-				const procedure = 'procedureA';
-
-				wampSocket.wampSend(procedure);
+				wampSocket.wampSend(validProcedure);
 				expect(wampSocket.send.calledOnce).to.be.true();
 			});
 
 			it('should invoke socket.emit function with passed arguments', () => {
-				const procedure = 'procedureA';
-				wampSocket.wampSend(procedure, someArgument);
+				wampSocket.wampSend(validProcedure, someArgument);
 
-				expect(wampSocket.send.getCalls().length).equal(1);
+				expect(wampSocket.on.calledOnce).to.be.true();
 				expect(wampSocket.send.getCalls()[0].args.length).equal(1);
 				const signature = JSON.parse(wampSocket.send.getCalls()[0].args[0]).signature;
-				expect(wampSocket.send.getCalls()[0].args[0]).to.equal(`{"data":{"propA":"valueA"},"procedure":"procedureA","signature":"${signature}","type":"/WAMPRequest"}`);
+				expect(wampSocket.send.getCalls()[0].args[0]).to.equal(`{"data":{"propA":"valueA"},"procedure":"${validProcedure}","signature":"${signature}","type":"/WAMPRequest"}`);
 			});
 
 
 			it('should invoke socket.on function', () => {
-				const procedure = 'procedureA';
-
-				wampSocket.wampSend(procedure);
+				wampSocket.wampSend(validProcedure);
 				expect(wampSocket.on.calledOnce).to.be.true();
 			});
 
 			it('should invoke socket.on function with passed arguments', () => {
-				const procedure = 'procedureA';
-				wampSocket.wampSend(procedure, someArgument);
-
-				expect(wampSocket.on.getCalls().length).equal(1);
+				wampSocket.wampSend(validProcedure, someArgument);
+				expect(wampSocket.on.calledOnce).to.be.true();
 				expect(wampSocket.on.getCalls()[0].args.length).equal(2);
 				expect(wampSocket.on.getCalls()[0].args[0]).equal('raw');
 				expect(wampSocket.on.getCalls()[0].args[1]).to.be.a('function');
@@ -175,6 +163,10 @@ describe('WAMPClient', () => {
 
 			describe('resolving responses', () => {
 				let mathRandomStub;
+				let validWampServerResponse;
+				let invalidWampServerResponse;
+				let validData;
+				const validError = 'error description';
 
 				before(() => {
 					mathRandomStub = sinon.stub(Math, 'random').returns(0);
@@ -184,47 +176,44 @@ describe('WAMPClient', () => {
 					mathRandomStub.restore();
 				});
 
-
-				it('should resolve with passed data when server responds when passed valid WAMPResult', (done) => {
-					const procedure = 'procedureA';
-					const sampleWampServerResponse = {
-						procedure,
+				beforeEach(() => {
+					validData = {
+						propA: 'valueA',
+					};
+					validWampServerResponse = {
+						procedure: validProcedure,
 						type: WAMPResponseSchema.id,
-						signature: `${(new Date()).getTime()}_0`,
+						signature: frozenSignature,
 						success: true,
 						error: null,
-						data: {
-							propA: 'valueA',
-						},
+						data: validData,
 					};
+					invalidWampServerResponse = {
+						procedure: validProcedure,
+						type: WAMPResponseSchema.id,
+						signature: frozenSignature,
+						success: false,
+						error: validError,
+						data: validData,
+					};
+				});
 
-					expect(v.validate(sampleWampServerResponse, WAMPResponseSchema).valid).to.be.true();
+				it('should resolve with passed data when server responds when passed valid WAMPResult', (done) => {
+					expect(v.validate(validWampServerResponse, WAMPResponseSchema).valid).to.be.true();
 
-					wampSocket.wampSend(procedure).then((data) => {
-						expect(data).equal(sampleWampServerResponse.data);
+					wampSocket.wampSend(validProcedure).then((data) => {
+						expect(data).equal(validWampServerResponse.data);
 						done();
 					}).catch((err) => {
 						expect(err).to.be.empty();
 					});
 
 					const mockedServerResponse = wampSocket.on.getCalls()[0].args[1];
-					mockedServerResponse(sampleWampServerResponse);
+					mockedServerResponse(validWampServerResponse);
 				});
 
 				it('should reject with passed data when server responds with invalid WAMPResult', (done) => {
-					const procedure = 'procedureA';
-					const invalidWampServerResponse = {
-						procedure,
-						type: WAMPResponseSchema.id,
-						signature: `${(new Date()).getTime()}_0`,
-						success: false,
-						error: 'err desc',
-						data: {
-							propA: 'valueA',
-						},
-					};
-
-					wampSocket.wampSend(procedure).then((data) => {
+					wampSocket.wampSend(validProcedure).then((data) => {
 						expect(data).to.be.empty();
 					}).catch((err) => {
 						expect(err).equal(invalidWampServerResponse.error);
@@ -237,48 +226,26 @@ describe('WAMPClient', () => {
 
 
 				it('should throw an error when no request signature provided', (done) => {
-					const procedure = 'procedureA';
-					const sampleWampServerResponse = Object.assign(someArgument, {
-						procedure,
-						type: WAMPResponseSchema.id,
-						success: false,
-						error: 'err desc',
-						data: {
-							propA: 'valueA',
-						},
-					});
-
-					wampSocket.wampSend(procedure);
+					wampSocket.wampSend(validProcedure);
 					const mockedServerResponse = wampSocket.on.getCalls()[0].args[1];
 					try {
-						mockedServerResponse(sampleWampServerResponse);
+						mockedServerResponse(validWampServerResponse);
 					} catch (err) {
-						expect(err.toString()).equal(`Error: Unable to find resolving function for procedure ${procedure} with signature undefined`);
+						expect(err.toString()).equal(`Error: Unable to find resolving function for procedure ${validProcedure} with signature undefined`);
 						done();
 					}
-
 					done();
 				});
 
-				it('should throw an error when wrong request signature provided', (done) => {
-					const procedure = 'procedureA';
-					const sampleWampServerResponse = Object.assign(someArgument, {
-						procedure,
-						type: WAMPResponseSchema.id,
-						signature: '99999',
-						success: false,
-						error: 'err desc',
-						data: {
-							propA: 'valueA',
-						},
-					});
-
-					wampSocket.wampSend(procedure);
+				it('should throw an error when invalid request signature provided', (done) => {
+					invalidWampServerResponse.signature = 'invalid signature';
+					const sampleWampServerResponse = Object.assign(someArgument, invalidWampServerResponse);
+					wampSocket.wampSend(validProcedure);
 					const mockedServerResponse = wampSocket.on.getCalls()[0].args[1];
 					try {
 						mockedServerResponse(sampleWampServerResponse);
 					} catch (err) {
-						expect(err.toString()).equal(`Error: Unable to find resolving function for procedure ${procedure} with signature ${sampleWampServerResponse.signature}`);
+						expect(err.toString()).equal(`Error: Unable to find resolving function for procedure ${validProcedure} with signature ${sampleWampServerResponse.signature}`);
 						done();
 					}
 				});
