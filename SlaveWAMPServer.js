@@ -50,6 +50,10 @@ class SlaveWAMPServer extends WAMPServer {
 		});
 	}
 
+	/**
+	 * @param {Object}[request={}] request
+	 * @returns {WAMPRequestSchema}
+	 */
 	static normalizeRequest(request = {}) {
 		if (!request.procedure || typeof request.procedure !== 'string') {
 			throw new Error(`Wrong format of requested procedure: ${request.procedure}`);
@@ -62,6 +66,13 @@ class SlaveWAMPServer extends WAMPServer {
 		return request;
 	}
 
+	/**
+	 * @param {string} procedure
+	 * @param {*} data
+	 * @param {string} socketId
+	 * @param {Function} cb
+	 * @returns {undefined}
+	 */
 	sendToMaster(procedure, data, socketId, cb) {
 		const req = SlaveWAMPServer.normalizeRequest({
 			type: schemas.InterProcessRPCRequestSchema.id,
@@ -76,6 +87,11 @@ class SlaveWAMPServer extends WAMPServer {
 		this.saveCall(req, cb);
 	}
 
+	/**
+	 * @param {WAMPRequestSchema} request
+	 * @param {Object} socket
+	 * @returns {undefined}
+	 */
 	processWAMPRequest(request, socket) {
 		if (v.validate(request, schemas.WAMPRequestSchema).valid) {
 			request.socketId = socket.id;
@@ -91,24 +107,73 @@ class SlaveWAMPServer extends WAMPServer {
 		}
 	}
 
+	/**
+	 * @param {string} socketId
+	 * @returns {boolean}
+	 */
 	onSocketDisconnect(socketId) {
 		return delete this.interProcessRPC[socketId];
 	}
 
-	getCall(request) {
-		return get(this.interProcessRPC, `${request.socketId}.${request.procedure}.${request.signature}`, false);
-	}
-
+	/**
+	 * @param {InterProcessRPCRequestSchema} request
+	 * @param {Function} cb
+	 * @returns {Object}
+	 */
 	saveCall(request, cb) {
+		if (!request) {
+			throw new Error('Internal error while attempting to save InterProcessRPCRequest: empty request');
+		}
+		if (!request.socketId) {
+			throw new Error('Internal error while attempting to save InterProcessRPCRequest: missing socketId');
+		}
+		if (!request.procedure) {
+			throw new Error('Internal error while attempting to save InterProcessRPCRequest: missing procedure');
+		}
+		if (!request.signature) {
+			throw new Error('Internal error while attempting to save InterProcessRPCRequest: missing signature');
+		}
+		if (!cb) {
+			throw new Error('Cannot save a call without callback');
+		}
 		return setWith(this.interProcessRPC, `${request.socketId}.${request.procedure}.${request.signature}`, cb, Object);
 	}
 
+	/**
+	 * @param {InterProcessRPCRequestSchema}[request={}] request
+	 * @returns {Function|false}
+	 */
+	getCall(request = {}) {
+		return get(this.interProcessRPC, `${request.socketId}.${request.procedure}.${request.signature}`, false);
+	}
+
+
+	/**
+	 * @param {InterProcessRPCResponseSchema} request
+	 * @returns {boolean}
+	 */
 	deleteCall(request) {
+		if (!request) {
+			throw new Error('Internal error while attempting to delete InterProcessRPCRequest: empty request');
+		}
+		if (!request.socketId) {
+			throw new Error('Internal error while attempting to delete InterProcessRPCRequest: missing socketId');
+		}
+		if (!request.procedure) {
+			throw new Error('Internal error while attempting to delete InterProcessRPCRequest: missing procedure');
+		}
+		if (!request.signature) {
+			throw new Error('Internal error while attempting to delete InterProcessRPCRequest: missing signature');
+		}
+		if (!this.getCall(request)) {
+			throw new Error(`There are no internal requests registered for socket: ${request.socketId}, procedure: ${request.procedure} with signature ${request.signature}`);
+		}
 		return delete this.interProcessRPC[request.socketId][request.procedure][request.signature];
 	}
 
 	/**
 	 * @param {Map<RPCEndpoint>} endpoints
+	 * @returns {undefined}
 	 */
 	reassignRPCSlaveEndpoints(endpoints) {
 		this.endpoints.slaveRpc = endpoints;
@@ -116,6 +181,7 @@ class SlaveWAMPServer extends WAMPServer {
 
 	/**
 	 * @param {Map<RPCEndpoint>} endpoints
+	 * @returns {undefined}
 	 */
 	registerRPCSlaveEndpoints(endpoints) {
 		this.endpoints.slaveRpc = Object.assign(this.endpoints.slaveRpc, endpoints);

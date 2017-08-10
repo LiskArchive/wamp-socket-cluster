@@ -9,10 +9,10 @@ class WAMPServer {
 	}
 
 	/**
-	 * @param {object} request
+	 * @param {Object} request
 	 * @param {Error} error
 	 * @param {*} data
-	 * @returns {object}
+	 * @returns {Object}
 	 */
 	static createResponsePayload(request, error, data) {
 		return Object.assign({}, request, {
@@ -24,8 +24,8 @@ class WAMPServer {
 	}
 
 	/**
-	 * @param {object} socket - SocketCluster.Socket
-	 * @returns {object} wampSocket
+	 * @param {Object} socket - SocketCluster.Socket
+	 * @returns {Object} wampSocket
 	 */
 	upgradeToWAMP(socket) {
 		// register RPC endpoints
@@ -37,7 +37,7 @@ class WAMPServer {
 				return;
 			}
 			if (schemas.isValid(parsedRequest, schemas.WAMPRequestSchema)) {
-				this.processWAMPRequest(request, socket);
+				this.processWAMPRequest(parsedRequest, socket);
 			}
 		});
 
@@ -58,6 +58,7 @@ class WAMPServer {
 	/**
 	 * @param {WAMPRequestSchema} request
 	 * @param {SocketCluster.Socket} socket
+	 * @returns {undefined}
 	 */
 	processWAMPRequest(request, socket) {
 		if (this.endpoints.rpc[request.procedure] &&
@@ -79,6 +80,7 @@ class WAMPServer {
 	 * @param {WAMPRequestSchema} request
 	 * @param {*} error
 	 * @param {*} data
+	 * @returns {undefined}
 	 */
 	/* eslint class-methods-use-this: 0 */
 	reply(socket, request, error, data) {
@@ -93,6 +95,7 @@ class WAMPServer {
 
 	/**
 	 * @param {Map<RPCEndpoint>} endpoints
+	 * @returns {undefined}
 	 */
 	registerRPCEndpoints(endpoints) {
 		this.endpoints.rpc = Object.assign(this.endpoints.rpc, endpoints);
@@ -100,6 +103,7 @@ class WAMPServer {
 
 	/**
 	 * @param {Map<RPCEndpoint>} endpoints
+	 * @returns {undefined}
 	 */
 	registerEventEndpoints(endpoints) {
 		this.endpoints.event = Object.assign(this.endpoints.event, endpoints);
@@ -107,6 +111,7 @@ class WAMPServer {
 
 	/**
 	 * @param {Map<RPCEndpoint>} endpoints
+	 * @returns {undefined}
 	 */
 	reassignRPCEndpoints(endpoints) {
 		this.endpoints.rpc = endpoints;
@@ -114,6 +119,7 @@ class WAMPServer {
 
 	/**
 	 * @param {Map<RPCEndpoint>} endpoints
+	 * @returns {undefined}
 	 */
 	reassignEventEndpoints(endpoints) {
 		this.endpoints.event = endpoints;

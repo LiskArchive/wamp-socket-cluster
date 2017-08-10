@@ -14,6 +14,10 @@ before(() => {
 	clock = sinon.useFakeTimers(new Date(2020, 1, 1).getTime());
 });
 
+after(() => {
+	clock.restore();
+});
+
 describe('WAMPClient', () => {
 	let fakeSocket;
 
@@ -108,7 +112,7 @@ describe('WAMPClient', () => {
 				const procedure = 'procedureA';
 
 				wampSocket.wampSend(procedure);
-				expect(wampSocket.send.calledOnce).to.be.ok();
+				expect(wampSocket.send.calledOnce).to.be.true();
 			});
 
 			it('should invoke socket.emit function with passed arguments', () => {
@@ -126,7 +130,7 @@ describe('WAMPClient', () => {
 				const procedure = 'procedureA';
 
 				wampSocket.wampSend(procedure);
-				expect(wampSocket.on.calledOnce).to.be.ok();
+				expect(wampSocket.on.calledOnce).to.be.true();
 			});
 
 			it('should invoke socket.on function with passed arguments', () => {
@@ -140,8 +144,14 @@ describe('WAMPClient', () => {
 			});
 
 			describe('resolving responses', () => {
+				let mathRandomStub;
+
 				before(() => {
-					sinon.stub(Math, 'random').returns(0);
+					mathRandomStub = sinon.stub(Math, 'random').returns(0);
+				});
+
+				after(() => {
+					mathRandomStub.restore();
 				});
 
 
@@ -158,7 +168,7 @@ describe('WAMPClient', () => {
 						},
 					};
 
-					expect(v.validate(sampleWampServerResponse, WAMPResponseSchema).valid).to.be.ok();
+					expect(v.validate(sampleWampServerResponse, WAMPResponseSchema).valid).to.be.true();
 
 					wampSocket.wampSend(procedure).then((data) => {
 						expect(data).equal(sampleWampServerResponse.data);
@@ -245,8 +255,4 @@ describe('WAMPClient', () => {
 			});
 		});
 	});
-});
-
-after(() => {
-	clock.restore();
 });

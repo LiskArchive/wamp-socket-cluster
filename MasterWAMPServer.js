@@ -29,8 +29,13 @@ class MasterWAMPServer extends WAMPServer {
 			}
 		});
 
-		socketCluster.on('workerExit', workerInfo =>
-			this.workerIndices.splice(this.workerIndices.indexOf(workerInfo.id)), 1);
+		socketCluster.on('workerExit', (workerInfo) => {
+			const existingWorkerIndex = this.workerIndices.indexOf(workerInfo.id);
+			if (existingWorkerIndex === -1) {
+				return;
+			}
+			this.workerIndices.splice(existingWorkerIndex, 1);
+		});
 	}
 
 	/**
@@ -38,6 +43,7 @@ class MasterWAMPServer extends WAMPServer {
 	 * @param {WAMPRequestSchema} request
 	 * @param {*} error
 	 * @param {*} data
+	 * @returns {undefined}
 	 */
 	reply(socket, request, error, data) {
 		const payload = MasterWAMPServer.createResponsePayload(request, error, data);
