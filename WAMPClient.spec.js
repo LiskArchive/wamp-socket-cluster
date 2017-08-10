@@ -8,18 +8,19 @@ const v = new Validator();
 const WAMPClient = require('./WAMPClient.js');
 const WAMPResponseSchema = require('./schemas').WAMPResponseSchema;
 
-let clock;
-
-before(() => {
-	clock = sinon.useFakeTimers(new Date(2020, 1, 1).getTime());
-});
-
-after(() => {
-	clock.restore();
-});
-
 describe('WAMPClient', () => {
 	let fakeSocket;
+	let clock;
+	let frozenSignature;
+
+	after(() => {
+		clock.restore();
+	});
+
+	before(() => {
+		clock = sinon.useFakeTimers(new Date(2020, 1, 1).getTime());
+		frozenSignature = `${(new Date()).getTime()}_0`;
+	});
 
 	beforeEach(() => {
 		fakeSocket = {
@@ -40,10 +41,28 @@ describe('WAMPClient', () => {
 		});
 	});
 
+	describe('generateSignature', () => {
+
+		it('should generate a signature when empty procedureCalls given', () => {
+			expect(WAMPClient.generateSignature({})).not.to.be.empty();
+		});
+
+		it('should generate a signature in a proper format', () => {
+			expect(WAMPClient.generateSignature({})).to.be.a('string').and.to.match(/[0-9]{13}_[0-9]{1,6}/);
+		});
+
+		it('should return null while attempting to find a signature fails more than MAX_GENERATE_ATTEMPTS times', () => {
+			const mathRandomStub = sinon.stub(Math, 'random').returns(0);
+			expect(WAMPClient.generateSignature({[frozenSignature]: true})).to.be.null;
+			mathRandomStub.restore();
+		});
+	});
+
 	describe('wampSocket', () => {
 		describe('send', () => {
 			let wampClient;
 			let wampSocket;
+			const procedure = 'procedureA';
 
 			const someArgument = {
 				propA: 'valueA',
@@ -98,7 +117,6 @@ describe('WAMPClient', () => {
 
 
 			it('should not create entries after exceeding the MAX_CALLS_ALLOWED limit', () => {
-				const procedure = 'procedureA';
 
 				for (let i = 0; i <= WAMPClient.MAX_CALLS_ALLOWED; i += 1) {
 					wampSocket.wampSend(procedure).catch(() => {});
@@ -106,6 +124,18 @@ describe('WAMPClient', () => {
 
 				expect(Object.keys(wampClient.callsResolvers[procedure]).length)
 					.equal(WAMPClient.MAX_CALLS_ALLOWED);
+			});
+
+			it('should fail while it is impossible to generate a signature', (done) => {
+				wampClient.callsResolvers = { [procedure]: { [frozenSignature]: true } };
+				const mathRandomStub = sinon.stub(Math, 'random').returns(0);
+				wampSocket.wampSend(procedure)
+					.then(() => done('should not be here'))
+					.catch((error) => {
+						expect(error).to.equal('Failed to generate proper signature 100000 times');
+						return done();
+					});
+				mathRandomStub.restore();
 			});
 
 			it('should invoke socket.emit function', () => {

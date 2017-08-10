@@ -3,28 +3,34 @@ const schemas = require('./schemas');
 
 class WAMPClient {
 	/**
-	 * @returns {number}
+	 * @return {number}
 	 */
 	static get MAX_CALLS_ALLOWED() {
 		return 100;
 	}
 
 	/**
-	 * @param {Object} procedureCalls
+	 * @return {number}
+	 */
+	static get MAX_GENERATE_ATTEMPTS() {
+		return 100000;
+	}
+
+	/**
+	 * @param {object} procedureCalls
 	 * @returns {*}
 	 */
 	static generateSignature(procedureCalls) {
-		const generateNonce = () => Math.ceil((Math.random() * 100000));
-
-		const tryGenerateSignature = (nonce) => {
-			const signatureCandidate = `${(new Date()).getTime()}_${nonce}`;
+		const generateNonce = () => Math.ceil(Math.random() * 100000);
+		let generateAttempts = 0;
+		while (generateAttempts < WAMPClient.MAX_GENERATE_ATTEMPTS) {
+			const signatureCandidate = `${(new Date()).getTime()}_${generateNonce()}`;
 			if (!procedureCalls[signatureCandidate]) {
 				return signatureCandidate;
 			}
-			return tryGenerateSignature(generateNonce());
-		};
-
-		return tryGenerateSignature(generateNonce());
+			generateAttempts += 1;
+		}
+		return null;
 	}
 
 	constructor() {
@@ -32,8 +38,8 @@ class WAMPClient {
 	}
 
 	/**
-	 * @param {Object} socket - SocketCluster.Socket
-	 * @returns {Object} wampSocket
+	 * @param {object} socket - SocketCluster.Socket
+	 * @returns {object} wampSocket
 	 */
 	upgradeToWAMP(socket) {
 		if (socket.wampSend && socket.listeners('raw').length) {
@@ -70,13 +76,17 @@ class WAMPClient {
 				fail(`No more than ${WAMPClient.MAX_CALLS_ALLOWED} calls allowed`);
 			} else {
 				const signature = WAMPClient.generateSignature(this.callsResolvers[procedure]);
-				this.callsResolvers[procedure][signature] = { success, fail };
-				socket.send(JSON.stringify({
-					data,
-					procedure,
-					signature,
-					type: schemas.WAMPRequestSchema.id,
-				}));
+				if (!signature) {
+					fail(`Failed to generate proper signature ${WAMPClient.MAX_GENERATE_ATTEMPTS} times`);
+				} else {
+					this.callsResolvers[procedure][signature] = { success, fail };
+					socket.send(JSON.stringify({
+						data,
+						procedure,
+						signature,
+						type: schemas.WAMPRequestSchema.id,
+					}));
+				}
 			}
 		});
 		return wampSocket;
