@@ -3,6 +3,19 @@ const schemas = require('./schemas');
 
 class WAMPClient {
 	/**
+	 * @returns {number} - time [ms] to wait for RPC responses sent to WAMPServer
+	 */
+	static get RESPONSE_TIMEOUT() {
+		return 10000; // 10 sec
+	}
+
+	/**
+	 * @returns {number} - time [ms] to wait for RPC responses sent to WAMPServer
+	 */
+	static get CLEAN_OUTDATED_REQUESTS_INTERVAL() {
+		return 2000;
+	}
+	/**
 	 * @returns {number}
 	 */
 	static get MAX_CALLS_ALLOWED() {
