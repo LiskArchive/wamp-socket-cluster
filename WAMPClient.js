@@ -1,5 +1,6 @@
 const get = require('lodash.get');
 const schemas = require('./schemas');
+const ClientRequestCleaner = require('./common/ClientRequestCleaner');
 
 class WAMPClient {
 	/**
@@ -47,6 +48,12 @@ class WAMPClient {
 	}
 
 	constructor() {
+		this.clientRequestsCleaner = new ClientRequestCleaner(
+			this.interProcessRPC,
+			WAMPClient.CLEAN_OUTDATED_REQUESTS_INTERVAL,
+			WAMPClient.MAX_CALLS_ALLOWED);
+		this.clientRequestsCleaner.start();
+
 		this.callsResolvers = {};
 	}
 

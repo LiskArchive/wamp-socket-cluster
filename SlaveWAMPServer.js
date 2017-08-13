@@ -3,6 +3,7 @@ const setWith = require('lodash.setwith');
 const get = require('lodash.get');
 const WAMPServer = require('./WAMPServer');
 const WAMPClient = require('./WAMPClient');
+const InternalRequestCleaner = require('./common/InternalRequestsCleaner');
 
 const schemas = require('./schemas');
 
@@ -11,16 +12,23 @@ const v = new Validator();
 class SlaveWAMPServer extends WAMPServer {
 	/**
 	 * @param {SocketCluster.Worker} worker
+	 * @param {number} internalRequestsTimeoutMs
+	 * @param {number} cleanRequestsIntervalMs
 	 * @param {Function}[configuredCb=function] configuredCb
 	 */
-	constructor(worker, configuredCb = () => {}) {
+	constructor(worker,
+		internalRequestsTimeoutMs = 10000,
+		cleanRequestsIntervalMs = 2000,
+		configuredCb = () => {}) {
 		super();
 		this.worker = worker;
 		this.sockets = worker.scServer.clients;
 		this.interProcessRPC = {};
 		this.endpoints.slaveRpc = {};
 		this.config = {};
-
+		this.clientRequestsCleaner = new InternalRequestCleaner(
+			this.interProcessRPC, cleanRequestsIntervalMs, internalRequestsTimeoutMs);
+		this.clientRequestsCleaner.start();
 		this.worker.on('masterMessage', (response) => {
 			if (schemas.isValid(response, schemas.MasterWAMPResponseSchema) ||
 				schemas.isValid(response, schemas.WAMPResponseSchema)) {
