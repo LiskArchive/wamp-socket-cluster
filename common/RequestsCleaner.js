@@ -1,9 +1,22 @@
 class RequestsCleaner {
 
-	constructor(calls, clearInterval, timeout) {
+	constructor(calls, intervalMs, timeoutMs) {
 		this.calls = calls;
-		this.clearInterval = clearInterval;
-		this.timeout = timeout;
+		this.intervalMs = intervalMs;
+		this.timeoutMs = timeoutMs;
+		this.cleanInterval = null;
+	}
+
+	start() {
+		if (this.cleanInterval) {
+			throw new Error('Requests cleaner is already running');
+		}
+		this.cleanInterval = setInterval(this.verifySignatures, this.intervalMs);
+	}
+
+	stop() {
+		clearInterval(this.cleanInterval);
+		this.cleanInterval = null;
 	}
 
 	static isOutdated(signature, timeout) {
@@ -15,7 +28,7 @@ class RequestsCleaner {
 		return timeElapsed > timeout;
 	}
 
-	getSignature(calls) {
+	verifySignatures() {
 		throw new Error('getSignature needs to be overwritten');
 	}
 }
