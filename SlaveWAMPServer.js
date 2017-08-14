@@ -12,8 +12,8 @@ const v = new Validator();
 class SlaveWAMPServer extends WAMPServer {
 	/**
 	 * @param {SocketCluster.Worker} worker
-	 * @param {number} internalRequestsTimeoutMs
-	 * @param {number} cleanRequestsIntervalMs
+	 * @param {number} internalRequestsTimeoutMs - time [ms] to wait for responses from master
+	 * @param {number} cleanRequestsIntervalMs - frequency [ms] of cleaning outdated requests
 	 * @param {Function}[configuredCb=function] configuredCb
 	 */
 	constructor(worker,

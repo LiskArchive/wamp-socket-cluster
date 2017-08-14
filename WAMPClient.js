@@ -4,19 +4,6 @@ const ClientRequestCleaner = require('./common/ClientRequestCleaner');
 
 class WAMPClient {
 	/**
-	 * @returns {number} - time [ms] to wait for RPC responses sent to WAMPServer
-	 */
-	static get RESPONSE_TIMEOUT() {
-		return 10000; // 10 sec
-	}
-
-	/**
-	 * @returns {number} - time [ms] to wait for RPC responses sent to WAMPServer
-	 */
-	static get CLEAN_OUTDATED_REQUESTS_INTERVAL() {
-		return 2000;
-	}
-	/**
 	 * @returns {number}
 	 */
 	static get MAX_CALLS_ALLOWED() {
@@ -47,11 +34,13 @@ class WAMPClient {
 		return null;
 	}
 
-	constructor() {
+	/**
+	 * @param {number} requestsTimeoutMs - time [ms] to wait for RPC responses sent to WAMPServer
+	 * @param {number} cleanRequestsIntervalMs - frequency [ms] of cleaning outdated requests
+	 */
+	constructor(requestsTimeoutMs = 10000, cleanRequestsIntervalMs = 2000) {
 		this.clientRequestsCleaner = new ClientRequestCleaner(
-			this.interProcessRPC,
-			WAMPClient.CLEAN_OUTDATED_REQUESTS_INTERVAL,
-			WAMPClient.MAX_CALLS_ALLOWED);
+			this.callsResolvers, cleanRequestsIntervalMs, requestsTimeoutMs);
 		this.clientRequestsCleaner.start();
 
 		this.callsResolvers = {};

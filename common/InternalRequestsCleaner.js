@@ -7,6 +7,9 @@ class InternalRequestsCleaner extends RequestsCleaner {
 	}
 
 	verifySignatures() {
+		if (!this.calls) {
+			return;
+		}
 		for (const socketId of Object.keys(this.calls)) {
 			for (const procedure of Object.keys(this.calls[socketId])) {
 				for (const signature of Object.keys(this.calls[socketId][procedure])) {

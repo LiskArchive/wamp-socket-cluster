@@ -7,6 +7,9 @@ class ClientRequestsCleaner extends RequestsCleaner {
 	}
 
 	verifySignatures() {
+		if (!this.calls) {
+			return;
+		}
 		for (const procedure of Object.keys(this.calls)) {
 			for (const signature of Object.keys(this.calls[procedure])) {
 				if (RequestsCleaner.isOutdated(signature, this.timeoutMs)) {
