@@ -9,7 +9,6 @@ const WAMPClient = require('./WAMPClient.js');
 const WAMPResponseSchema = require('./schemas').WAMPResponseSchema;
 
 describe('WAMPClient', () => {
-
 	let fakeSocket;
 	let clock;
 	let frozenSignature;
@@ -135,7 +134,7 @@ describe('WAMPClient', () => {
 				wampSocket.wampSend(validProcedure)
 					.then(() => done('should not be here'))
 					.catch((error) => {
-						expect(error).to.equal('Failed to generate proper signature 100000 times');
+						expect(error).to.equal('Failed to generate proper signature 10000 times');
 						return done();
 					});
 				mathRandomStub.restore();

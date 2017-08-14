@@ -13,7 +13,7 @@ class WAMPClient {
 	 * @returns {number}
 	 */
 	static get MAX_GENERATE_ATTEMPTS() {
-		return 100000;
+		return 10000;
 	}
 
 	/**
@@ -21,7 +21,7 @@ class WAMPClient {
 	 * @returns {*}
 	 */
 	static generateSignature(procedureCalls) {
-		const generateNonce = () => Math.ceil(Math.random() * 100000);
+		const generateNonce = () => Math.ceil(Math.random() * 10000);
 		let generateAttempts = 0;
 		while (generateAttempts < WAMPClient.MAX_GENERATE_ATTEMPTS) {
 			const signatureCandidate = `${(new Date()).getTime()}_${generateNonce()}`;
