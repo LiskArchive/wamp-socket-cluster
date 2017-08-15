@@ -3,10 +3,8 @@ const sinon = require('sinon');
 const { expect } = require('../testSetup.spec');
 
 const ClientRequestCleaner = require('./ClientRequestCleaner');
-const RequestsCleaner = require('./RequestsCleaner');
 
 describe('ClientRequestsCleaner', () => {
-
 	let clientRequestsCleaner;
 	const validTimeoutMs = 1;
 	const validIntervalMs = 1;
@@ -19,48 +17,45 @@ describe('ClientRequestsCleaner', () => {
 		[validProcedure]: {
 			[outdatedSignature]: outdatedSignatureResolvers,
 			[validSignature]: validSignatureResolvers,
-		}
+		},
 	};
-	let timeNow;
 	let clock;
 
-	before(function () {
+	before(() => {
 		clientRequestsCleaner = new ClientRequestCleaner(validCalls, validIntervalMs, validTimeoutMs);
 		clock = sinon.useFakeTimers(new Date(2020, 1, 1, 1, 1, validTimeoutMs + 1).getTime());
-		timeNow = (new Date()).getTime();
 	});
 
 	after(() => {
 		clock.restore();
 	});
 
-	describe('verifySignatures', function () {
-
-		before(function () {
+	describe('verifySignatures', () => {
+		before(() => {
 			clientRequestsCleaner.verifySignatures();
 		});
 
-		it('should call reject function on outdated signature', function () {
+		it('should call reject function on outdated signature', () => {
 			expect(outdatedSignatureResolvers.reject.calledWith('RPC response timeout exceeded')).to.be.true();
 		});
 
-		it('should not call reject function on valid signature', function () {
+		it('should not call reject function on valid signature', () => {
 			expect(validSignatureResolvers.reject.called).to.be.false();
 		});
 
-		it('should not call success function on outdated signature', function () {
+		it('should not call success function on outdated signature', () => {
 			expect(outdatedSignatureResolvers.success.called).to.be.false();
 		});
 
-		it('should not call success function on valid signature', function () {
+		it('should not call success function on valid signature', () => {
 			expect(validSignatureResolvers.success.called).to.be.false();
 		});
 
-		it('should remove outdated signature from calls', function () {
+		it('should remove outdated signature from calls', () => {
 			expect(validCalls).to.eql({
 				[validProcedure]: {
 					[validSignature]: validSignatureResolvers,
-				}
+				},
 			});
 		});
 	});

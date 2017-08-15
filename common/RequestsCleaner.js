@@ -1,5 +1,9 @@
 class RequestsCleaner {
-
+	/**
+	 * @param {*} calls
+	 * @param {number} intervalMs
+	 * @param {number} timeoutMs
+	 */
 	constructor(calls, intervalMs, timeoutMs) {
 		this.calls = calls;
 		this.intervalMs = intervalMs;
@@ -19,6 +23,11 @@ class RequestsCleaner {
 		this.cleanInterval = null;
 	}
 
+	/**
+	 * @param {string} signature
+	 * @param {number} timeout
+	 * @returns {boolean}
+	 */
 	static isOutdated(signature, timeout) {
 		const signatureTime = +signature.slice(0, 13);
 		if (isNaN(signatureTime)) {
@@ -28,6 +37,7 @@ class RequestsCleaner {
 		return timeElapsed > timeout;
 	}
 
+	/* eslint class-methods-use-this: 0 */
 	verifySignatures() {
 		throw new Error('getSignature needs to be overwritten');
 	}

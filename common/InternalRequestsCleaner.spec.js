@@ -3,10 +3,8 @@ const sinon = require('sinon');
 const { expect } = require('../testSetup.spec');
 
 const InternalRequestCleaner = require('./InternalRequestsCleaner');
-const RequestsCleaner = require('./RequestsCleaner');
 
 describe('InternalRequestsCleaner', () => {
-
 	let internalRequestsCleaner;
 	const validTimeoutMs = 1;
 	const validIntervalMs = 1;
@@ -21,43 +19,43 @@ describe('InternalRequestsCleaner', () => {
 			[validProcedure]: {
 				[outdatedSignature]: outdatedSignatureCallback,
 				[validSignature]: validSignatureCallback,
-			}
-		}
+			},
+		},
 	};
-	let timeNow;
 	let clock;
 
-	before(function () {
-		internalRequestsCleaner = new InternalRequestCleaner(validCalls, validIntervalMs, validTimeoutMs);
+	before(() => {
+		internalRequestsCleaner = new InternalRequestCleaner(
+			validCalls,
+			validIntervalMs,
+			validTimeoutMs);
 		clock = sinon.useFakeTimers(new Date(2020, 1, 1, 1, 1, validTimeoutMs + 1).getTime());
-		timeNow = (new Date()).getTime();
 	});
 
 	after(() => {
 		clock.restore();
 	});
 
-	describe('verifySignatures', function () {
-
-		before(function () {
+	describe('verifySignatures', () => {
+		before(() => {
 			internalRequestsCleaner.verifySignatures();
 		});
 
-		it('should call reject function on outdated signature', function () {
+		it('should call reject function on outdated signature', () => {
 			expect(outdatedSignatureCallback.calledWith('RPC response timeout exceeded')).to.be.true();
 		});
 
-		it('should not call success function on valid signature', function () {
+		it('should not call success function on valid signature', () => {
 			expect(validSignatureCallback.called).to.be.false();
 		});
 
-		it('should remove outdated signature from calls', function () {
+		it('should remove outdated signature from calls', () => {
 			expect(validCalls).to.eql({
 				[validSocketId]: {
 					[validProcedure]: {
 						[validSignature]: validSignatureCallback,
-					}
-				}
+					},
+				},
 			});
 		});
 	});
