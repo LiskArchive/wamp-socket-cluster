@@ -16,8 +16,9 @@ class SlaveWAMPServer extends WAMPServer {
 	 * @param {number} cleanRequestsIntervalMs - frequency [ms] of cleaning outdated requests
 	 * @param {Function}[configuredCb=function] configuredCb
 	 */
-	constructor(worker,
-		internalRequestsTimeoutMs = 10000,
+	constructor(
+		worker,
+		internalRequestsTimeoutMs = 10e3,
 		cleanRequestsIntervalMs = 2000,
 		configuredCb = () => {}) {
 		super();

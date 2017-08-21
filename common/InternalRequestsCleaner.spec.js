@@ -14,21 +14,9 @@ describe('InternalRequestsCleaner', () => {
 	const validSignature = `${new Date(2020, 1, 1, 1, 1, validTimeoutMs + 1).getTime()}_0`;
 	const validSignatureCallback = sinon.spy();
 	const outdatedSignatureCallback = sinon.spy();
-	const validCalls = {
-		[validSocketId]: {
-			[validProcedure]: {
-				[outdatedSignature]: outdatedSignatureCallback,
-				[validSignature]: validSignatureCallback,
-			},
-		},
-	};
 	let clock;
 
 	before(() => {
-		internalRequestsCleaner = new InternalRequestCleaner(
-			validCalls,
-			validIntervalMs,
-			validTimeoutMs);
 		clock = sinon.useFakeTimers(new Date(2020, 1, 1, 1, 1, validTimeoutMs + 1).getTime());
 	});
 
@@ -37,7 +25,21 @@ describe('InternalRequestsCleaner', () => {
 	});
 
 	describe('verifySignatures', () => {
-		before(() => {
+		let validCalls;
+
+		beforeEach(() => {
+			validCalls = {
+				[validSocketId]: {
+					[validProcedure]: {
+						[outdatedSignature]: outdatedSignatureCallback,
+						[validSignature]: validSignatureCallback,
+					},
+				},
+			};
+			internalRequestsCleaner = new InternalRequestCleaner(
+				validCalls,
+				validIntervalMs,
+				validTimeoutMs);
 			internalRequestsCleaner.verifySignatures();
 		});
 

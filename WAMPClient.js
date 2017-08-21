@@ -14,7 +14,7 @@ class WAMPClient {
 	 * @returns {number}
 	 */
 	static get MAX_GENERATE_ATTEMPTS() {
-		return 10000;
+		return 10e3;
 	}
 
 	/**
@@ -22,7 +22,7 @@ class WAMPClient {
 	 * @returns {*}
 	 */
 	static generateSignature(procedureCalls) {
-		const generateNonce = () => Math.ceil(Math.random() * 10000);
+		const generateNonce = () => Math.ceil(Math.random() * 10e3);
 		let generateAttempts = 0;
 		while (generateAttempts < WAMPClient.MAX_GENERATE_ATTEMPTS) {
 			const signatureCandidate = `${(new Date()).getTime()}_${generateNonce()}`;
@@ -38,12 +38,11 @@ class WAMPClient {
 	 * @param {number} requestsTimeoutMs - time [ms] to wait for RPC responses sent to WAMPServer
 	 * @param {number} cleanRequestsIntervalMs - frequency [ms] of cleaning outdated requests
 	 */
-	constructor(requestsTimeoutMs = 10000, cleanRequestsIntervalMs = 2000) {
+	constructor(requestsTimeoutMs = 10e3, cleanRequestsIntervalMs = 1000) {
+		this.callsResolvers = {};
 		this.clientRequestsCleaner = new ClientRequestCleaner(
 			this.callsResolvers, cleanRequestsIntervalMs, requestsTimeoutMs);
 		this.clientRequestsCleaner.start();
-
-		this.callsResolvers = {};
 	}
 
 	/**

@@ -7,24 +7,23 @@ const RequestsCleaner = require('./RequestsCleaner');
 describe('RequestsCleaner', () => {
 	let requestsCleaner;
 	const validCalls = {};
-	const validTimeoutMs = 1;
+	const valid10secsTimeout10secs = 10e3;
 	const validIntervalMs = 1;
 
 	before(() => {
-		requestsCleaner = new RequestsCleaner(validCalls, validIntervalMs, validTimeoutMs);
+		requestsCleaner = new RequestsCleaner(validCalls, validIntervalMs, valid10secsTimeout10secs);
 	});
 
 	describe('isOutdated', () => {
-		const isOutdated = RequestsCleaner.isOutdated;
+		let isOutdated;
 		let valid10secOldSignature;
 		let valid20secOldSignature;
 		let validPresentSignature;
 
-		const timeout10secs = 10000;
-
 		let clock;
 
 		before(() => {
+			isOutdated = requestsCleaner.isOutdated.bind(requestsCleaner);
 			valid20secOldSignature = `${new Date(2020, 1, 1, 1, 1, 0).getTime()}_0`;
 			valid10secOldSignature = `${new Date(2020, 1, 1, 1, 1, 10).getTime()}_0`;
 			clock = sinon.useFakeTimers(new Date(2020, 1, 1, 1, 1, 20).getTime());
@@ -36,30 +35,25 @@ describe('RequestsCleaner', () => {
 		});
 
 		it('should return true for outdated signature', () => {
-			expect(isOutdated(valid20secOldSignature, timeout10secs)).to.be.true();
+			expect(isOutdated(valid20secOldSignature)).to.be.true();
 		});
 
 		it('should return false for signatures just as old as timeout', () => {
-			expect(isOutdated(valid10secOldSignature, timeout10secs)).to.be.false();
+			expect(isOutdated(valid10secOldSignature)).to.be.false();
 		});
 
 		it('should return false for signatures later than timeout', () => {
-			expect(isOutdated(validPresentSignature, timeout10secs)).to.be.false();
+			expect(isOutdated(validPresentSignature)).to.be.false();
 		});
 
 		it('should throw an error when invalid signature is passed', () => {
 			const invalidSignature = 'invalidSignature';
-			expect(() => isOutdated(invalidSignature, timeout10secs)).to.throw('Wrong signature stored in internal RPC calls');
+			expect(() => isOutdated(invalidSignature)).to.throw('Wrong signature stored in internal RPC calls');
 		});
 	});
 
 	describe('start', () => {
 		let verifySignaturesStub;
-
-		beforeEach(() => {
-			clearInterval(requestsCleaner.cleanInterval);
-			requestsCleaner.cleanInterval = null;
-		});
 
 		before(() => {
 			verifySignaturesStub = sinon.stub(requestsCleaner, 'verifySignatures');
@@ -67,6 +61,11 @@ describe('RequestsCleaner', () => {
 
 		after(() => {
 			verifySignaturesStub.restore();
+		});
+
+		beforeEach(() => {
+			clearInterval(requestsCleaner.cleanInterval);
+			requestsCleaner.cleanInterval = null;
 		});
 
 		it('should initialize cleanInterval variable', () => {
@@ -91,11 +90,6 @@ describe('RequestsCleaner', () => {
 	describe('stop', () => {
 		let verifySignaturesStub;
 
-		beforeEach(() => {
-			clearInterval(requestsCleaner.cleanInterval);
-			requestsCleaner.cleanInterval = null;
-		});
-
 		before(() => {
 			verifySignaturesStub = sinon.stub(requestsCleaner, 'verifySignatures');
 		});
@@ -104,15 +98,18 @@ describe('RequestsCleaner', () => {
 			verifySignaturesStub.restore();
 		});
 
+		beforeEach(() => {
+			clearInterval(requestsCleaner.cleanInterval);
+			requestsCleaner.cleanInterval = null;
+		});
+
 		it('should not throw an error when cleanInterval is not running', () => {
 			expect(requestsCleaner.stop.bind(requestsCleaner)).not.to.throw();
 		});
 
 		describe('when cleanInterval running', () => {
 			beforeEach(() => {
-				if (requestsCleaner.cleanInterval) {
-					requestsCleaner.start();
-				}
+				requestsCleaner.start();
 			});
 
 			it('should set cleanInterval to null', () => {
@@ -127,6 +124,12 @@ describe('RequestsCleaner', () => {
 					done();
 				}, validIntervalMs * 3);
 			});
+		});
+	});
+
+	describe('verifySignatures', () => {
+		it('should throw an error when called as it must be overwritten by the child', () => {
+			expect(requestsCleaner.verifySignatures).to.throw();
 		});
 	});
 });

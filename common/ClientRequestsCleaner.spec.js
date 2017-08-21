@@ -13,16 +13,9 @@ describe('ClientRequestsCleaner', () => {
 	const validSignature = `${new Date(2020, 1, 1, 1, 1, validTimeoutMs + 1).getTime()}_0`;
 	const validSignatureResolvers = { success: sinon.spy(), reject: sinon.spy() };
 	const outdatedSignatureResolvers = { success: sinon.spy(), reject: sinon.spy() };
-	const validCalls = {
-		[validProcedure]: {
-			[outdatedSignature]: outdatedSignatureResolvers,
-			[validSignature]: validSignatureResolvers,
-		},
-	};
 	let clock;
 
 	before(() => {
-		clientRequestsCleaner = new ClientRequestCleaner(validCalls, validIntervalMs, validTimeoutMs);
 		clock = sinon.useFakeTimers(new Date(2020, 1, 1, 1, 1, validTimeoutMs + 1).getTime());
 	});
 
@@ -31,7 +24,16 @@ describe('ClientRequestsCleaner', () => {
 	});
 
 	describe('verifySignatures', () => {
-		before(() => {
+		let validCalls;
+
+		beforeEach(() => {
+			validCalls = {
+				[validProcedure]: {
+					[outdatedSignature]: outdatedSignatureResolvers,
+					[validSignature]: validSignatureResolvers,
+				},
+			};
+			clientRequestsCleaner = new ClientRequestCleaner(validCalls, validIntervalMs, validTimeoutMs);
 			clientRequestsCleaner.verifySignatures();
 		});
 

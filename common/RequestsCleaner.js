@@ -25,19 +25,18 @@ class RequestsCleaner {
 
 	/**
 	 * @param {string} signature
-	 * @param {number} timeout
 	 * @returns {boolean}
 	 */
-	static isOutdated(signature, timeout) {
+	isOutdated(signature) {
 		const signatureTime = +signature.slice(0, 13);
 		if (isNaN(signatureTime)) {
 			throw new Error('Wrong signature stored in internal RPC calls');
 		}
 		const timeElapsed = (new Date()).getTime() - signatureTime;
-		return timeElapsed > timeout;
+		return timeElapsed > this.timeoutMs;
 	}
 
-	/* eslint class-methods-use-this: 0 */
+	// eslint-disable-next-line class-methods-use-this
 	verifySignatures() {
 		throw new Error('getSignature needs to be overwritten');
 	}

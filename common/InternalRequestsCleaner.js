@@ -8,7 +8,7 @@ class InternalRequestsCleaner extends RequestsCleaner {
 		Object.keys(this.calls).forEach((socketId) => {
 			Object.keys(this.calls[socketId]).forEach((procedure) => {
 				Object.keys(this.calls[socketId][procedure]).forEach((signature) => {
-					if (RequestsCleaner.isOutdated(signature, this.timeoutMs)) {
+					if (this.isOutdated(signature)) {
 						this.calls[socketId][procedure][signature]('RPC response timeout exceeded');
 						delete this.calls[socketId][procedure][signature];
 					}

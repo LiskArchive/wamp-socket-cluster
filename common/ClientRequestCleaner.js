@@ -7,7 +7,7 @@ class ClientRequestsCleaner extends RequestsCleaner {
 		}
 		Object.keys(this.calls).forEach((procedure) => {
 			Object.keys(this.calls[procedure]).forEach((signature) => {
-				if (RequestsCleaner.isOutdated(signature, this.timeoutMs)) {
+				if (this.isOutdated(signature)) {
 					this.calls[procedure][signature].reject('RPC response timeout exceeded');
 					delete this.calls[procedure][signature];
 				}
