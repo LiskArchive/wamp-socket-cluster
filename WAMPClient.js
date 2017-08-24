@@ -38,7 +38,7 @@ class WAMPClient {
 	 * @param {number} requestsTimeoutMs - time [ms] to wait for RPC responses sent to WAMPServer
 	 * @param {number} cleanRequestsIntervalMs - frequency [ms] of cleaning outdated requests
 	 */
-	constructor(requestsTimeoutMs = 10e3, cleanRequestsIntervalMs = 1000) {
+	constructor(requestsTimeoutMs = 10e3, cleanRequestsIntervalMs = 10e3) {
 		this.callsResolvers = {};
 		this.clientRequestsCleaner = new ClientRequestCleaner(
 			this.callsResolvers, cleanRequestsIntervalMs, requestsTimeoutMs);

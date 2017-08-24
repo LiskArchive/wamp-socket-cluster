@@ -19,7 +19,7 @@ class SlaveWAMPServer extends WAMPServer {
 	constructor(
 		worker,
 		internalRequestsTimeoutMs = 10e3,
-		cleanRequestsIntervalMs = 2000,
+		cleanRequestsIntervalMs = 10e3,
 		configuredCb = () => {}) {
 		super();
 		this.worker = worker;

@@ -12,8 +12,8 @@ describe('InternalRequestsCleaner', () => {
 	const validProcedure = 'validProcedure';
 	const outdatedSignature = `${new Date(2020, 1, 1, 1, 1, 0).getTime()}_0`;
 	const validSignature = `${new Date(2020, 1, 1, 1, 1, validTimeoutMs + 1).getTime()}_0`;
-	const validSignatureCallback = sinon.spy();
-	const outdatedSignatureCallback = sinon.spy();
+	let validSignatureCallback;
+	let outdatedSignatureCallback;
 	let clock;
 
 	before(() => {
@@ -27,6 +27,8 @@ describe('InternalRequestsCleaner', () => {
 	describe('verifySignatures', () => {
 		let validCalls;
 
+		validSignatureCallback = sinon.spy();
+		outdatedSignatureCallback = sinon.spy();
 		beforeEach(() => {
 			validCalls = {
 				[validSocketId]: {

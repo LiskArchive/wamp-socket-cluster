@@ -11,8 +11,8 @@ describe('ClientRequestsCleaner', () => {
 	const validProcedure = 'validProcedure';
 	const outdatedSignature = `${new Date(2020, 1, 1, 1, 1, 0).getTime()}_0`;
 	const validSignature = `${new Date(2020, 1, 1, 1, 1, validTimeoutMs + 1).getTime()}_0`;
-	const validSignatureResolvers = { success: sinon.spy(), reject: sinon.spy() };
-	const outdatedSignatureResolvers = { success: sinon.spy(), reject: sinon.spy() };
+	let validSignatureResolvers;
+	let outdatedSignatureResolvers;
 	let clock;
 
 	before(() => {
@@ -25,7 +25,8 @@ describe('ClientRequestsCleaner', () => {
 
 	describe('verifySignatures', () => {
 		let validCalls;
-
+		validSignatureResolvers = { success: sinon.spy(), reject: sinon.spy() };
+		outdatedSignatureResolvers = { success: sinon.spy(), reject: sinon.spy() };
 		beforeEach(() => {
 			validCalls = {
 				[validProcedure]: {

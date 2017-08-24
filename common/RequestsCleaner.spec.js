@@ -10,7 +10,7 @@ describe('RequestsCleaner', () => {
 	const valid10secsTimeout10secs = 10e3;
 	const validIntervalMs = 1;
 
-	before(() => {
+	beforeEach(() => {
 		requestsCleaner = new RequestsCleaner(validCalls, validIntervalMs, valid10secsTimeout10secs);
 	});
 
@@ -22,7 +22,7 @@ describe('RequestsCleaner', () => {
 
 		let clock;
 
-		before(() => {
+		beforeEach(() => {
 			isOutdated = requestsCleaner.isOutdated.bind(requestsCleaner);
 			valid20secOldSignature = `${new Date(2020, 1, 1, 1, 1, 0).getTime()}_0`;
 			valid10secOldSignature = `${new Date(2020, 1, 1, 1, 1, 10).getTime()}_0`;
@@ -30,7 +30,7 @@ describe('RequestsCleaner', () => {
 			validPresentSignature = `${(new Date()).getTime()}_0`;
 		});
 
-		after(() => {
+		afterEach(() => {
 			clock.restore();
 		});
 
@@ -55,17 +55,14 @@ describe('RequestsCleaner', () => {
 	describe('start', () => {
 		let verifySignaturesStub;
 
-		before(() => {
-			verifySignaturesStub = sinon.stub(requestsCleaner, 'verifySignatures');
-		});
-
-		after(() => {
-			verifySignaturesStub.restore();
-		});
-
 		beforeEach(() => {
+			verifySignaturesStub = sinon.stub(requestsCleaner, 'verifySignatures');
 			clearInterval(requestsCleaner.cleanInterval);
 			requestsCleaner.cleanInterval = null;
+		});
+
+		afterEach(() => {
+			verifySignaturesStub.restore();
 		});
 
 		it('should initialize cleanInterval variable', () => {
@@ -90,17 +87,14 @@ describe('RequestsCleaner', () => {
 	describe('stop', () => {
 		let verifySignaturesStub;
 
-		before(() => {
-			verifySignaturesStub = sinon.stub(requestsCleaner, 'verifySignatures');
-		});
-
-		after(() => {
-			verifySignaturesStub.restore();
-		});
-
 		beforeEach(() => {
+			verifySignaturesStub = sinon.stub(requestsCleaner, 'verifySignatures');
 			clearInterval(requestsCleaner.cleanInterval);
 			requestsCleaner.cleanInterval = null;
+		});
+
+		afterEach(() => {
+			verifySignaturesStub.restore();
 		});
 
 		it('should not throw an error when cleanInterval is not running', () => {
