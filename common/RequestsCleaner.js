@@ -36,9 +36,12 @@ class RequestsCleaner {
 		return timeElapsed > this.timeoutMs;
 	}
 
+	/**
+	 * @override
+	 */
 	// eslint-disable-next-line class-methods-use-this
 	verifySignatures() {
-		throw new Error('getSignature needs to be overwritten');
+		throw new Error('verifySignatures is an abstract function an and must be overridden by the child class or instance');
 	}
 }
 

@@ -113,10 +113,11 @@ describe('RequestsCleaner', () => {
 
 			it('stop invoking verifySignatures', (done) => {
 				requestsCleaner.stop();
+				const beforeStopsCallsCount = requestsCleaner.verifySignatures.callCount;
 				setTimeout(() => {
-					expect(requestsCleaner.verifySignatures.called).to.be.false();
+					expect(requestsCleaner.verifySignatures.callCount).to.equal(beforeStopsCallsCount);
 					done();
-				}, validIntervalMs * 3);
+				}, validIntervalMs * 10);
 			});
 		});
 	});
