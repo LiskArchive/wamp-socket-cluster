@@ -19,7 +19,6 @@ class SlaveWAMPServer extends WAMPServer {
 	constructor(
 		worker,
 		internalRequestsTimeoutMs = 10e3,
-		cleanRequestsIntervalMs = 10e3,
 		configuredCb = () => {}) {
 		super();
 		this.worker = worker;
@@ -27,9 +26,7 @@ class SlaveWAMPServer extends WAMPServer {
 		this.interProcessRPC = {};
 		this.endpoints.slaveRpc = {};
 		this.config = {};
-		this.clientRequestsCleaner = new InternalRequestCleaner(
-			this.interProcessRPC, cleanRequestsIntervalMs, internalRequestsTimeoutMs);
-		this.clientRequestsCleaner.start();
+		this.internalRequestsTimeoutMs = internalRequestsTimeoutMs;
 		this.worker.on('masterMessage', (response) => {
 			if (schemas.isValid(response, schemas.MasterWAMPResponseSchema) ||
 				schemas.isValid(response, schemas.WAMPResponseSchema)) {
@@ -126,10 +123,10 @@ class SlaveWAMPServer extends WAMPServer {
 
 	/**
 	 * @param {InterProcessRPCRequestSchema} request
-	 * @param {Function} cb
+	 * @param {Function} callback
 	 * @returns {Object}
 	 */
-	saveCall(request, cb) {
+	saveCall(request, callback) {
 		if (!request) {
 			throw new Error('Internal error while attempting to save InterProcessRPCRequest: empty request');
 		}
@@ -142,10 +139,14 @@ class SlaveWAMPServer extends WAMPServer {
 		if (!request.signature) {
 			throw new Error('Internal error while attempting to save InterProcessRPCRequest: missing signature');
 		}
-		if (!cb) {
+		if (!callback) {
 			throw new Error('Cannot save a call without callback');
 		}
-		return setWith(this.interProcessRPC, `${request.socketId}.${request.procedure}.${request.signature}`, cb, Object);
+		const requestTimeout = setTimeout(() => {
+			callback('RPC response timeout exceeded');
+			this.deleteCall(request);
+		}, this.internalRequestsTimeoutMs);
+		return setWith(this.interProcessRPC, `${request.socketId}.${request.procedure}.${request.signature}`, {callback, requestTimeout}, Object);
 	}
 
 	/**
@@ -153,9 +154,16 @@ class SlaveWAMPServer extends WAMPServer {
 	 * @returns {Function|false}
 	 */
 	getCall(request = {}) {
-		return get(this.interProcessRPC, `${request.socketId}.${request.procedure}.${request.signature}`, false);
+		return get(this.interProcessRPC, `${request.socketId}.${request.procedure}.${request.signature}.callback`, false);
 	}
 
+	/**
+	 * @param {InterProcessRPCRequestSchema}[request={}] request
+	 * @returns {Timeout|false}
+	 */
+	getRequestTimeout(request = {}) {
+		return get(this.interProcessRPC, `${request.socketId}.${request.procedure}.${request.signature}.requestTimeout`, false);
+	}
 
 	/**
 	 * @param {InterProcessRPCResponseSchema} request
@@ -177,6 +185,7 @@ class SlaveWAMPServer extends WAMPServer {
 		if (!this.getCall(request)) {
 			throw new Error(`There are no internal requests registered for socket: ${request.socketId}, procedure: ${request.procedure} with signature ${request.signature}`);
 		}
+		clearTimeout(this.getRequestTimeout(request));
 		return delete this.interProcessRPC[request.socketId][request.procedure][request.signature];
 	}
 
