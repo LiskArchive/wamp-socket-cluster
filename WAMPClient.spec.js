@@ -14,12 +14,12 @@ describe('WAMPClient', () => {
 	let frozenSignature;
 	const validProcedure = 'validProcedure';
 
-	before(() => {
+	beforeEach(() => {
 		clock = sinon.useFakeTimers(new Date(2020, 1, 1).getTime());
 		frozenSignature = `${(new Date()).getTime()}_0`;
 	});
 
-	after(() => {
+	afterEach(() => {
 		clock.restore();
 	});
 
@@ -91,9 +91,10 @@ describe('WAMPClient', () => {
 				expect(Object.keys(wampClient.callsResolvers[validProcedure]).length).equal(1);
 				const signature = Object.keys(wampClient.callsResolvers[validProcedure])[0];
 
-				expect(wampClient.callsResolvers[validProcedure][signature]).to.have.all.keys('success', 'fail');
+				expect(wampClient.callsResolvers[validProcedure][signature]).to.have.all.keys('success', 'fail', 'requestTimeout');
 				expect(wampClient.callsResolvers[validProcedure][signature].success).to.be.a('function');
 				expect(wampClient.callsResolvers[validProcedure][signature].fail).to.be.a('function');
+				expect(wampClient.callsResolvers[validProcedure][signature].requestTimeout).to.be.an('object');
 			});
 
 			it('should create 2 correct entries for calling twice the same procedure', () => {
@@ -255,6 +256,26 @@ describe('WAMPClient', () => {
 						expect(err.toString()).equal(`Error: Unable to find resolving function for procedure ${validProcedure} with signature ${sampleWampServerResponse.signature}`);
 						done();
 					}
+				});
+
+				describe('when requestsTimeoutMs is exceeded', () => {
+					let wampSendRejectionSpy;
+
+					beforeEach((done) => {
+						clock.restore();
+						wampSocket.requestTimeout = 1;
+						wampSendRejectionSpy = sinon.spy();
+						wampSocket.wampSend(validProcedure, validData).catch(wampSendRejectionSpy);
+						setTimeout(done, wampSocket.requestTimeout + 1);
+					});
+
+					it('should reject promise', () => {
+						expect(wampSendRejectionSpy.calledOnce).to.be.true();
+					});
+
+					it('should reject promise with error = "RPC response timeout exceeded"', () => {
+						expect(wampSendRejectionSpy.calledWithExactly('RPC response timeout exceeded')).to.be.true();
+					});
 				});
 			});
 		});

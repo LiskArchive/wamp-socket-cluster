@@ -3,7 +3,6 @@ const setWith = require('lodash.setwith');
 const get = require('lodash.get');
 const WAMPServer = require('./WAMPServer');
 const WAMPClient = require('./WAMPClient');
-const InternalRequestCleaner = require('./common/InternalRequestsCleaner');
 
 const schemas = require('./schemas');
 
@@ -146,7 +145,7 @@ class SlaveWAMPServer extends WAMPServer {
 			callback('RPC response timeout exceeded');
 			this.deleteCall(request);
 		}, this.internalRequestsTimeoutMs);
-		return setWith(this.interProcessRPC, `${request.socketId}.${request.procedure}.${request.signature}`, {callback, requestTimeout}, Object);
+		return setWith(this.interProcessRPC, `${request.socketId}.${request.procedure}.${request.signature}`, { callback, requestTimeout }, Object);
 	}
 
 	/**

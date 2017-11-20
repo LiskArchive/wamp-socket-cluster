@@ -1,6 +1,5 @@
 const get = require('lodash.get');
 const schemas = require('./schemas');
-const ClientRequestCleaner = require('./common/ClientRequestCleaner');
 
 class WAMPClient {
 	/**
