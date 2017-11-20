@@ -59,8 +59,8 @@ class WAMPClient {
 					} else {
 						resolvers.fail(result.error);
 					}
-					delete this.callsResolvers[result.procedure][result.signature];
 					clearTimeout(resolvers.requestTimeout);
+					delete this.callsResolvers[result.procedure][result.signature];
 				} else {
 					throw new Error(`Unable to find resolving function for procedure ${result.procedure} with signature ${result.signature}`);
 				}
