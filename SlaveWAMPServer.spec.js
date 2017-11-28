@@ -18,6 +18,14 @@ describe('SlaveWAMPServer', () => {
 	const validCb = sinon.spy();
 
 	beforeEach(() => {
+		clock = sinon.useFakeTimers(new Date(2020, 1, 1).getTime());
+	});
+
+	afterEach(() => {
+		clock.restore();
+	});
+
+	beforeEach(() => {
 		workerMock = {
 			id: 0,
 			on: sinon.spy(),
@@ -38,19 +46,15 @@ describe('SlaveWAMPServer', () => {
 		validInterProcessRPCEntry = {
 			[validSocketId]: {
 				[validProcedure]: {
-					[validSignature]: () => {},
+					[validSignature]: {
+						requestTimeout: setTimeout(() => {}, 0),
+						callback: () => {},
+					},
 				},
 			},
 		};
 	});
 
-	before(() => {
-		clock = sinon.useFakeTimers(new Date(2020, 1, 1).getTime());
-	});
-
-	after(() => {
-		clock.restore();
-	});
 
 	describe('constructor', () => {
 		it('create SlaveWAMPServer with worker field', () => {
@@ -247,9 +251,26 @@ describe('SlaveWAMPServer', () => {
 			})).to.be.true();
 		});
 
-		it('should pass create a new entry in interProcessRPC map', () => {
+		it('should create a new entry in interProcessRPC map', () => {
 			slaveWAMPServer.sendToMaster(validProcedure, validData, validSocketId, validCb);
-			expect(slaveWAMPServer.interProcessRPC).to.have.nested.property(`${validSocketId}.${validProcedure}.${validSignature}`).to.be.a('function');
+			expect(slaveWAMPServer.interProcessRPC).to.have.nested.property(`${validSocketId}.${validProcedure}.${validSignature}`).to.be.an('object');
+		});
+
+		describe('when internalRequestsTimeoutMs is exceeded', () => {
+			beforeEach((done) => {
+				clock.restore();
+				slaveWAMPServer.internalRequestsTimeoutMs = 1;
+				slaveWAMPServer.sendToMaster(validProcedure, validData, validSocketId, validCb);
+				setTimeout(done, slaveWAMPServer.internalRequestsTimeoutMs + 1);
+			});
+
+			it('should resolve request', () => {
+				expect(validCb.calledOnce).to.be.true();
+			});
+
+			it('should resolve request with error = "RPC response timeout exceeded"', () => {
+				expect(validCb.calledWithExactly('RPC response timeout exceeded')).to.be.true();
+			});
 		});
 	});
 
@@ -308,9 +329,14 @@ describe('SlaveWAMPServer', () => {
 			expect(slaveWAMPServer.interProcessRPC).to.be.empty();
 		});
 
-		it('should create a new entry in interProcessRPC for valid request', () => {
+		it('should create a new entry in interProcessRPC for valid request containing callback', () => {
 			slaveWAMPServer.saveCall(validRequest, validCb);
-			expect(slaveWAMPServer.interProcessRPC).to.have.nested.property(`${validSocketId}.${validProcedure}.${validSignature}`).to.be.a('function');
+			expect(slaveWAMPServer.interProcessRPC).to.have.nested.property(`${validSocketId}.${validProcedure}.${validSignature}.callback`).to.be.a('function');
+		});
+
+		it('should create a new entry in interProcessRPC for valid request containing requestTimeout', () => {
+			slaveWAMPServer.saveCall(validRequest, validCb);
+			expect(slaveWAMPServer.interProcessRPC).to.have.nested.property(`${validSocketId}.${validProcedure}.${validSignature}.requestTimeout`);
 		});
 
 		it('should create multiple entries in interProcessRPC for multiple valid requests', () => {
@@ -322,10 +348,10 @@ describe('SlaveWAMPServer', () => {
 			slaveWAMPServer.saveCall(validRequestB, validCb);
 			expect(slaveWAMPServer.interProcessRPC)
 				.to.have.nested.property(`${validSocketId}.${validProcedure}.${validSignature}`)
-				.to.be.a('function');
+				.to.be.an('object');
 			expect(slaveWAMPServer.interProcessRPC)
 				.to.have.nested.property(`${validRequestB.socketId}.${validRequestB.procedure}.${validRequestB.signature}`)
-				.to.be.a('function');
+				.to.be.a('object');
 		});
 	});
 
@@ -408,6 +434,41 @@ describe('SlaveWAMPServer', () => {
 
 			it('should return valid callback when invoked with valid request', () => {
 				expect(slaveWAMPServer.getCall(validRequest)).to.be.a('function');
+			});
+		});
+	});
+
+	describe('getRequestTimeout', () => {
+		it('should return false when invoked without arguments', () => {
+			expect(slaveWAMPServer.getRequestTimeout()).to.be.false();
+		});
+
+		it('should return false when a call does not exist', () => {
+			expect(slaveWAMPServer.getRequestTimeout(validRequest)).to.be.false();
+		});
+
+		describe('when call exists', () => {
+			beforeEach(() => {
+				slaveWAMPServer.interProcessRPC = validInterProcessRPCEntry;
+			});
+
+			it('should return false when invoked without socket id', () => {
+				delete validRequest.socketId;
+				expect(slaveWAMPServer.getRequestTimeout()).to.be.false();
+			});
+
+			it('should return false when invoked without procedure', () => {
+				delete validRequest.procedure;
+				expect(slaveWAMPServer.getRequestTimeout()).to.be.false();
+			});
+
+			it('should return false when invoked without signature', () => {
+				delete validRequest.signature;
+				expect(slaveWAMPServer.getRequestTimeout()).to.be.false();
+			});
+
+			it('should return valid callback when invoked with valid request', () => {
+				expect(slaveWAMPServer.getRequestTimeout(validRequest)).to.be.an('object');
 			});
 		});
 	});

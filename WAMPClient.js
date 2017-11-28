@@ -1,6 +1,5 @@
 const get = require('lodash.get');
 const schemas = require('./schemas');
-const ClientRequestCleaner = require('./common/ClientRequestCleaner');
 
 class WAMPClient {
 	/**
@@ -36,13 +35,10 @@ class WAMPClient {
 
 	/**
 	 * @param {number} requestsTimeoutMs - time [ms] to wait for RPC responses sent to WAMPServer
-	 * @param {number} cleanRequestsIntervalMs - frequency [ms] of cleaning outdated requests
 	 */
-	constructor(requestsTimeoutMs = 10e3, cleanRequestsIntervalMs = 10e3) {
+	constructor(requestsTimeoutMs = 10e3) {
 		this.callsResolvers = {};
-		this.clientRequestsCleaner = new ClientRequestCleaner(
-			this.callsResolvers, cleanRequestsIntervalMs, requestsTimeoutMs);
-		this.clientRequestsCleaner.start();
+		this.requestsTimeoutMs = requestsTimeoutMs;
 	}
 
 	/**
@@ -63,6 +59,7 @@ class WAMPClient {
 					} else {
 						resolvers.fail(result.error);
 					}
+					clearTimeout(resolvers.requestTimeout);
 					delete this.callsResolvers[result.procedure][result.signature];
 				} else {
 					throw new Error(`Unable to find resolving function for procedure ${result.procedure} with signature ${result.signature}`);
@@ -87,7 +84,11 @@ class WAMPClient {
 				if (!signature) {
 					fail(`Failed to generate proper signature ${WAMPClient.MAX_GENERATE_ATTEMPTS} times`);
 				} else {
-					this.callsResolvers[procedure][signature] = { success, fail };
+					const requestTimeout = setTimeout(() => {
+						delete this.callsResolvers[procedure][signature];
+						fail('RPC response timeout exceeded');
+					}, this.requestsTimeoutMs);
+					this.callsResolvers[procedure][signature] = { success, fail, requestTimeout };
 					socket.send(JSON.stringify({
 						data,
 						procedure,
