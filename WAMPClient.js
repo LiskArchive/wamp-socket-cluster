@@ -51,6 +51,11 @@ class WAMPClient {
 		}
 		const wampSocket = socket;
 		wampSocket.on('raw', (result) => {
+			// Cast JSON string to an object if possible.
+			try {
+				result = JSON.parse(result);
+			} catch (err) {}
+
 			if (schemas.isValid(result, schemas.WAMPResponseSchema)) {
 				const resolvers = get(this.callsResolvers, `${result.procedure}.${result.signature}`);
 				if (resolvers) {

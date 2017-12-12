@@ -1,4 +1,4 @@
-const SocketCluster = require('socketcluster').SocketCluster;
+const SocketCluster = require('socketcluster');
 
 const options = {
 	workers: 1,
