@@ -1,4 +1,4 @@
-const get = require('lodash.get');
+const get = require('./utils').get;
 const schemas = require('./schemas');
 
 class WAMPClient {
