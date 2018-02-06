@@ -122,7 +122,6 @@ class SlaveWAMPServer extends WAMPServer {
 	/**
 	 * @param {InterProcessRPCRequestSchema} request
 	 * @param {Function} callback
-	 * @returns {Object}
 	 */
 	saveCall(request, callback) {
 		if (!request) {
