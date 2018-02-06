@@ -5,14 +5,15 @@ const utils = {
 		}
 		const deepKeyArray = deepKeyString.split('.');
 		let currentResult = obj;
-		for (const key of deepKeyArray) {
-			currentResult = currentResult[key];
+
+		for (let i = 0; i < deepKeyArray.length; i += 1) {
+			currentResult = currentResult[deepKeyArray[i]];
 			if (currentResult === undefined) {
 				return defaultValue;
 			}
 		}
 		return currentResult;
-	}
+	},
 };
 
 module.exports = utils;

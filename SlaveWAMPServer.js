@@ -150,7 +150,9 @@ class SlaveWAMPServer extends WAMPServer {
 		if (!this.interProcessRPC[request.socketId][request.procedure]) {
 			this.interProcessRPC[request.socketId][request.procedure] = {};
 		}
-		this.interProcessRPC[request.socketId][request.procedure][request.signature] = { callback, requestTimeout };
+		this.interProcessRPC[request.socketId][request.procedure][request.signature] = {
+			callback, requestTimeout,
+		};
 	}
 
 	/**

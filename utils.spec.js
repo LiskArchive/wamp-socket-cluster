@@ -4,9 +4,7 @@ const { expect } = require('./testSetup.spec');
 const utils = require('./utils');
 
 describe('utils', () => {
-
 	describe('get', () => {
-
 		let validPath;
 		let validObject;
 		let validDefaultValue;
@@ -19,14 +17,12 @@ describe('utils', () => {
 			validDefaultValue = undefined;
 		});
 
-		beforeEach(function () {
+		beforeEach(() => {
 			getResult = utils.get(validObject, validPath, validDefaultValue);
 		});
 
 		describe('when path is not a string', () => {
-
 			describe('when path is an object', () => {
-
 				before(() => {
 					validPath = {};
 				});
@@ -37,7 +33,6 @@ describe('utils', () => {
 			});
 
 			describe('when path is an array', () => {
-
 				before(() => {
 					validPath = [];
 				});
@@ -48,7 +43,6 @@ describe('utils', () => {
 			});
 
 			describe('when path is a number', () => {
-
 				before(() => {
 					const validNumber = 1;
 					validPath = validNumber;
@@ -60,7 +54,6 @@ describe('utils', () => {
 			});
 
 			describe('when path is null', () => {
-
 				before(() => {
 					validPath = null;
 				});
@@ -71,7 +64,6 @@ describe('utils', () => {
 			});
 
 			describe('when path is undefined', () => {
-
 				before(() => {
 					validPath = undefined;
 				});
@@ -83,9 +75,7 @@ describe('utils', () => {
 		});
 
 		describe('when path is a string', () => {
-
-			describe('and is empty', function () {
-
+			describe('and is empty', () => {
 				before(() => {
 					validPath = '';
 				});
@@ -95,22 +85,20 @@ describe('utils', () => {
 				});
 			});
 
-			describe('when accessing nested object', function () {
-
+			describe('when accessing nested object', () => {
 				before(() => {
 					validObject = {
 						a: {
 							b: {
 								c: {
-									d: 'abcd'
-								}
-							}
-						}
+									d: 'abcd',
+								},
+							},
+						},
 					};
 				});
 
 				describe('when accessing property does not exist', () => {
-
 					before(() => {
 						validPath = 'A.B.C.D';
 					});
@@ -119,8 +107,7 @@ describe('utils', () => {
 						expect(getResult).to.be.undefined();
 					});
 
-					describe('when defaultValue = false', function () {
-
+					describe('when defaultValue = false', () => {
 						before(() => {
 							validDefaultValue = false;
 						});
@@ -132,9 +119,7 @@ describe('utils', () => {
 				});
 
 				describe('when accessing property exists', () => {
-
-					describe('and points to the middle-path value', function () {
-
+					describe('and points to the middle-path value', () => {
 						before(() => {
 							validPath = 'a.b';
 						});
@@ -142,20 +127,19 @@ describe('utils', () => {
 						it('should return {c: {d: "abcd"}}}', () => {
 							expect(getResult).to.eql({
 								c: {
-									d: 'abcd'
-								}
+									d: 'abcd',
+								},
 							});
 						});
 					});
 
-					describe('and points to the final value', function () {
-
+					describe('and points to the final value', () => {
 						before(() => {
 							validPath = 'a.b.c.d';
 						});
 
 						it('should return "abcd"', () => {
-							expect(getResult).to.equal('abcd')
+							expect(getResult).to.equal('abcd');
 						});
 					});
 				});
