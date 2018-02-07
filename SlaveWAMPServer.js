@@ -1,6 +1,5 @@
 const Validator = require('jsonschema').Validator;
-const setWith = require('lodash.setwith');
-const get = require('lodash.get');
+const get = require('./utils').get;
 const WAMPServer = require('./WAMPServer');
 const WAMPClient = require('./WAMPClient');
 
@@ -123,7 +122,6 @@ class SlaveWAMPServer extends WAMPServer {
 	/**
 	 * @param {InterProcessRPCRequestSchema} request
 	 * @param {Function} callback
-	 * @returns {Object}
 	 */
 	saveCall(request, callback) {
 		if (!request) {
@@ -145,7 +143,16 @@ class SlaveWAMPServer extends WAMPServer {
 			callback('RPC response timeout exceeded');
 			this.deleteCall(request);
 		}, this.internalRequestsTimeoutMs);
-		return setWith(this.interProcessRPC, `${request.socketId}.${request.procedure}.${request.signature}`, { callback, requestTimeout }, Object);
+
+		if (!this.interProcessRPC[request.socketId]) {
+			this.interProcessRPC[request.socketId] = {};
+		}
+		if (!this.interProcessRPC[request.socketId][request.procedure]) {
+			this.interProcessRPC[request.socketId][request.procedure] = {};
+		}
+		this.interProcessRPC[request.socketId][request.procedure][request.signature] = {
+			callback, requestTimeout,
+		};
 	}
 
 	/**
