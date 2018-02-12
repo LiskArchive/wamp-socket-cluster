@@ -36,7 +36,7 @@ describe('WAMPClient', () => {
 	});
 
 	describe('upgradeToWAMP', () => {
-		it('should add send function to given parameter', () => {
+		it('should add emit function to given parameter', () => {
 			const wampSocket = new WAMPClient().upgradeToWAMP(fakeSocket);
 			expect(wampSocket).to.have.property('call').to.be.a('function');
 		});
@@ -76,7 +76,7 @@ describe('WAMPClient', () => {
 			beforeEach(() => {
 				wampClient = new WAMPClient(fakeSocket);
 				wampSocket = {
-					send: sinon.spy(),
+					emit: sinon.spy(),
 					on: sinon.spy(),
 				};
 				wampSocket = wampClient.upgradeToWAMP(wampSocket);
@@ -143,18 +143,29 @@ describe('WAMPClient', () => {
 
 			it('should invoke socket.emit function', () => {
 				wampSocket.call(validProcedure);
-				expect(wampSocket.send.calledOnce).to.be.true();
+				expect(wampSocket.emit.calledOnce).to.be.true();
 			});
 
-			it('should invoke socket.emit function with passed arguments', () => {
+			it('should invoke socket.emit function with passed 2 arguments', () => {
 				wampSocket.call(validProcedure, someArgument);
 
 				expect(wampSocket.on.calledOnce).to.be.true();
-				expect(wampSocket.send.getCalls()[0].args.length).equal(1);
-				const signature = JSON.parse(wampSocket.send.getCalls()[0].args[0]).signature;
-				expect(wampSocket.send.getCalls()[0].args[0]).to.equal(`{"data":{"propA":"valueA"},"procedure":"${validProcedure}","signature":"${signature}","type":"/WAMPRequest"}`);
+				expect(wampSocket.emit.getCalls()[0].args.length).equal(2);
 			});
 
+			it('should invoke socket.emit function with "rpc-request" as first argument', () => {
+				wampSocket.call(validProcedure, someArgument);
+				expect(wampSocket.emit.getCalls()[0].args[0]).equal('rpc-request');
+			});
+
+			it('should invoke socket.emit function with passed RPC query as second argument', () => {
+				wampSocket.call(validProcedure, someArgument);
+				const rpcQuery = wampSocket.emit.getCalls()[0].args[1];
+				expect(rpcQuery).to.have.property('data').eql({propA: 'valueA'});
+				expect(rpcQuery).to.have.property('procedure').equal(validProcedure);
+				expect(rpcQuery).to.have.property('signature');
+				expect(rpcQuery).to.have.property('type').equal('/WAMPRequest');
+			});
 
 			it('should invoke socket.on function', () => {
 				wampSocket.call(validProcedure);
@@ -165,7 +176,7 @@ describe('WAMPClient', () => {
 				wampSocket.call(validProcedure, someArgument);
 				expect(wampSocket.on.calledOnce).to.be.true();
 				expect(wampSocket.on.getCalls()[0].args.length).equal(2);
-				expect(wampSocket.on.getCalls()[0].args[0]).equal('raw');
+				expect(wampSocket.on.getCalls()[0].args[0]).equal('rpc-response');
 				expect(wampSocket.on.getCalls()[0].args[1]).to.be.a('function');
 			});
 
