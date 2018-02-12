@@ -13,13 +13,13 @@ describe('WAMPServer', () => {
 	});
 
 	describe('upgradeToWAMP', () => {
-		it('should add "raw" listener to passed socket', () => {
+		it('should add "rpc-request" listener to passed socket', () => {
 			let socket = {
 				on: sinon.spy(),
 			};
 			socket = new WAMPServer().upgradeToWAMP(socket);
 			expect(socket.on.calledOnce).to.be.true();
-			expect(socket.on.calledWith('raw')).to.be.true();
+			expect(socket.on.calledWith('rpc-request')).to.be.true();
 		});
 	});
 
@@ -86,7 +86,7 @@ describe('WAMPServer', () => {
 		it('should throw an error if no while attempt to invoke not registered procedure', () => {
 			const socket = {
 				on: sinon.spy(),
-				send: sinon.spy(),
+				emit: sinon.spy(),
 			};
 			const wampServer = new WAMPServer();
 			wampServer.upgradeToWAMP(socket);
