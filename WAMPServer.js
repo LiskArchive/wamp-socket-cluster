@@ -29,15 +29,9 @@ class WAMPServer {
 	 */
 	upgradeToWAMP(socket) {
 		// register RPC endpoints
-		socket.on('raw', (request) => {
-			let parsedRequest;
-			try {
-				parsedRequest = JSON.parse(request);
-			} catch (ex) {
-				return;
-			}
-			if (schemas.isValid(parsedRequest, schemas.WAMPRequestSchema)) {
-				this.processWAMPRequest(parsedRequest, socket);
+		socket.on('rpc-request', (request) => {
+			if (schemas.isValid(request, schemas.WAMPRequestSchema)) {
+				this.processWAMPRequest(request, socket);
 			}
 		});
 
@@ -65,11 +59,7 @@ class WAMPServer {
 			typeof this.endpoints.rpc[request.procedure] === 'function') {
 			return this.endpoints.rpc[request.procedure](request.data,
 				this.reply.bind(this, socket, request));
-		} else if (this.endpoints.event[request.procedure] &&
-			typeof this.endpoints.event[request.procedure] === 'function') {
-			return this.endpoints.event[request.procedure](request.data);
 		}
-
 		return this.reply(socket, request,
 			`Procedure ${request.procedure} not registered on WAMPServer. 
 			Available commands: ${JSON.stringify(Object.keys(this.endpoints.rpc))}`, null);
@@ -84,8 +74,7 @@ class WAMPServer {
 	 */
 	/* eslint class-methods-use-this: 0 */
 	reply(socket, request, error, data) {
-		const payload = WAMPServer.createResponsePayload(request, error, data);
-		socket.send(JSON.stringify(payload));
+		socket.emit('rpc-response', WAMPServer.createResponsePayload(request, error, data));
 	}
 
 	/**
