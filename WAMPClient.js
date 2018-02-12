@@ -50,17 +50,7 @@ class WAMPClient {
 			return socket;
 		}
 		const wampSocket = socket;
-
-		const enforceObject = (any) => {
-			try {
-				return JSON.parse(any);
-			} catch (ex) {
-				return any;
-			}
-		};
-
-		wampSocket.on('raw', (rawResult) => {
-			const result = enforceObject(rawResult);
+		wampSocket.on('rpc-response', (result) => {
 			if (schemas.isValid(result, schemas.WAMPResponseSchema)) {
 				const resolvers = get(this.callsResolvers, `${result.procedure}.${result.signature}`);
 				if (resolvers) {
@@ -101,7 +91,7 @@ class WAMPClient {
 
 			this.callsResolvers[procedure][signature] = { success, fail, requestTimeout };
 
-			socket.emit({
+			socket.emit('rpc-request', {
 				data,
 				procedure,
 				signature,
