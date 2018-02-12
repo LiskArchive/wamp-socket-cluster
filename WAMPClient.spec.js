@@ -66,7 +66,7 @@ describe('WAMPClient', () => {
 	});
 
 	describe('wampSocket', () => {
-		describe('send', () => {
+		describe('call', () => {
 			let wampClient;
 			let wampSocket;
 			const someArgument = {
@@ -83,11 +83,11 @@ describe('WAMPClient', () => {
 			});
 
 			it('should return a promise', () => {
-				expect(wampSocket.wampSend()).to.be.a('promise');
+				expect(wampSocket.call()).to.be.a('promise');
 			});
 
 			it('should create correct entry in wampClient.callsResolvers', () => {
-				wampSocket.wampSend(validProcedure);
+				wampSocket.call(validProcedure);
 				expect(Object.keys(wampClient.callsResolvers[validProcedure]).length).equal(1);
 				const signature = Object.keys(wampClient.callsResolvers[validProcedure])[0];
 
@@ -98,8 +98,8 @@ describe('WAMPClient', () => {
 			});
 
 			it('should create 2 correct entries for calling twice the same procedure', () => {
-				wampSocket.wampSend(validProcedure);
-				wampSocket.wampSend(validProcedure);
+				wampSocket.call(validProcedure);
+				wampSocket.call(validProcedure);
 				expect(Object.keys(wampClient.callsResolvers).length).equal(1);
 				expect(Object.keys(wampClient.callsResolvers[validProcedure]).length).equal(2);
 				const signatureA = Object.keys(wampClient.callsResolvers[validProcedure])[0];
@@ -112,8 +112,8 @@ describe('WAMPClient', () => {
 			it('should create 2 correct entries for calling twice different procedures', () => {
 				const procedureA = 'procedureA';
 				const procedureB = 'procedureB';
-				wampSocket.wampSend(procedureA);
-				wampSocket.wampSend(procedureB);
+				wampSocket.call(procedureA);
+				wampSocket.call(procedureB);
 				expect(Object.keys(wampClient.callsResolvers).length).equal(2);
 				expect(Object.keys(wampClient.callsResolvers[procedureA]).length).equal(1);
 				expect(Object.keys(wampClient.callsResolvers[procedureB]).length).equal(1);
@@ -122,7 +122,7 @@ describe('WAMPClient', () => {
 
 			it('should not create entries after exceeding the MAX_CALLS_ALLOWED limit', () => {
 				for (let i = 0; i <= WAMPClient.MAX_CALLS_ALLOWED; i += 1) {
-					wampSocket.wampSend(validProcedure).catch(() => {});
+					wampSocket.call(validProcedure).catch(() => {});
 				}
 
 				expect(Object.keys(wampClient.callsResolvers[validProcedure]).length)
@@ -132,7 +132,7 @@ describe('WAMPClient', () => {
 			it('should fail while it is impossible to generate a signature', (done) => {
 				wampClient.callsResolvers = { [validProcedure]: { [frozenSignature]: true } };
 				const mathRandomStub = sinon.stub(Math, 'random').returns(0);
-				wampSocket.wampSend(validProcedure)
+				wampSocket.call(validProcedure)
 					.then(() => done('should not be here'))
 					.catch((error) => {
 						expect(error).to.equal('Failed to generate proper signature 10000 times');
@@ -142,12 +142,12 @@ describe('WAMPClient', () => {
 			});
 
 			it('should invoke socket.emit function', () => {
-				wampSocket.wampSend(validProcedure);
+				wampSocket.call(validProcedure);
 				expect(wampSocket.send.calledOnce).to.be.true();
 			});
 
 			it('should invoke socket.emit function with passed arguments', () => {
-				wampSocket.wampSend(validProcedure, someArgument);
+				wampSocket.call(validProcedure, someArgument);
 
 				expect(wampSocket.on.calledOnce).to.be.true();
 				expect(wampSocket.send.getCalls()[0].args.length).equal(1);
@@ -157,12 +157,12 @@ describe('WAMPClient', () => {
 
 
 			it('should invoke socket.on function', () => {
-				wampSocket.wampSend(validProcedure);
+				wampSocket.call(validProcedure);
 				expect(wampSocket.on.calledOnce).to.be.true();
 			});
 
 			it('should invoke socket.on function with passed arguments', () => {
-				wampSocket.wampSend(validProcedure, someArgument);
+				wampSocket.call(validProcedure, someArgument);
 				expect(wampSocket.on.calledOnce).to.be.true();
 				expect(wampSocket.on.getCalls()[0].args.length).equal(2);
 				expect(wampSocket.on.getCalls()[0].args[0]).equal('raw');
@@ -209,7 +209,7 @@ describe('WAMPClient', () => {
 				it('should resolve with passed data when server responds when passed valid WAMPResult', (done) => {
 					expect(v.validate(validWampServerResponse, WAMPResponseSchema).valid).to.be.true();
 
-					wampSocket.wampSend(validProcedure).then((data) => {
+					wampSocket.call(validProcedure).then((data) => {
 						expect(data).equal(validWampServerResponse.data);
 						done();
 					}).catch((err) => {
@@ -221,7 +221,7 @@ describe('WAMPClient', () => {
 				});
 
 				it('should reject with passed data when server responds with invalid WAMPResult', (done) => {
-					wampSocket.wampSend(validProcedure).then((data) => {
+					wampSocket.call(validProcedure).then((data) => {
 						expect(data).to.be.empty();
 					}).catch((err) => {
 						expect(err).equal(invalidWampServerResponse.error);
@@ -234,7 +234,7 @@ describe('WAMPClient', () => {
 
 
 				it('should throw an error when no request signature provided', (done) => {
-					wampSocket.wampSend(validProcedure);
+					wampSocket.call(validProcedure);
 					const mockedServerResponse = wampSocket.on.getCalls()[0].args[1];
 					try {
 						mockedServerResponse(validWampServerResponse);
@@ -248,7 +248,7 @@ describe('WAMPClient', () => {
 				it('should throw an error when provided an invalid request signature', (done) => {
 					invalidWampServerResponse.signature = 'invalid signature';
 					const sampleWampServerResponse = Object.assign(someArgument, invalidWampServerResponse);
-					wampSocket.wampSend(validProcedure);
+					wampSocket.call(validProcedure);
 					const mockedServerResponse = wampSocket.on.getCalls()[0].args[1];
 					try {
 						mockedServerResponse(sampleWampServerResponse);
@@ -259,22 +259,22 @@ describe('WAMPClient', () => {
 				});
 
 				describe('when requestsTimeoutMs is exceeded', () => {
-					let wampSendRejectionSpy;
+					let callRejectionSpy;
 
 					beforeEach((done) => {
 						clock.restore();
 						wampSocket.requestTimeout = 1;
-						wampSendRejectionSpy = sinon.spy();
-						wampSocket.wampSend(validProcedure, validData).catch(wampSendRejectionSpy);
+						callRejectionSpy = sinon.spy();
+						wampSocket.call(validProcedure, validData).catch(callRejectionSpy);
 						setTimeout(done, wampSocket.requestTimeout + 1);
 					});
 
 					it('should reject promise', () => {
-						expect(wampSendRejectionSpy.calledOnce).to.be.true();
+						expect(callRejectionSpy.calledOnce).to.be.true();
 					});
 
 					it('should reject promise with error = "RPC response timeout exceeded"', () => {
-						expect(wampSendRejectionSpy.calledWithExactly('RPC response timeout exceeded')).to.be.true();
+						expect(callRejectionSpy.calledWithExactly('RPC response timeout exceeded')).to.be.true();
 					});
 				});
 			});

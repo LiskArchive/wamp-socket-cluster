@@ -6,7 +6,7 @@ As [SocketCluster](http://socketcluster.io/#!/) is not compatible with [WAMP pro
 
 ## Benefits
 
-- WAMP protocol style function calls (`socket.wampSend(...).then(...)`).
+- WAMP protocol style function calls (`socket.call(...).then(...)`).
 - Addresses the problem of response order in case of subscribing to an event after peer sends many individual requests.
 
 ## Installation
@@ -33,7 +33,7 @@ scServer.on('connection', socket => {
 const socket = scClient.connect(options);
 wampClient.upgradeToWAMP(this.socket);
 const randNumber =  Math.floor( Math.random() * 5 );
-socket.wampSend('multiplyByTwo', 2)
+socket.call('multiplyByTwo', 2)
       .then(result => console.log(`RPC result: ${randNumber} * 2 = ${result}`))
       .catch(err => console.error('RPC multiply by two error'));
 ```
