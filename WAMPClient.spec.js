@@ -38,11 +38,11 @@ describe('WAMPClient', () => {
 	describe('upgradeToWAMP', () => {
 		it('should add send function to given parameter', () => {
 			const wampSocket = new WAMPClient().upgradeToWAMP(fakeSocket);
-			expect(wampSocket).to.have.property('wampSend').to.be.a('function');
+			expect(wampSocket).to.have.property('call').to.be.a('function');
 		});
 
-		it('should return passed socket when wampSend and raw event listener are present', () => {
-			fakeSocket.wampSend = () => {};
+		it('should return passed socket when call and raw event listener are present', () => {
+			fakeSocket.call = () => {};
 			fakeSocket.listeners = () => ({ length: true });
 			const returnedSocket = new WAMPClient().upgradeToWAMP(fakeSocket);
 			expect(returnedSocket).to.equal(fakeSocket);
