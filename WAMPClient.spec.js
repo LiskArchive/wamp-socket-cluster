@@ -6,7 +6,7 @@ const { expect } = require('./testSetup.spec');
 const v = new Validator();
 
 const WAMPClient = require('./WAMPClient.js');
-const WAMPResponseSchema = require('./schemas').WAMPResponseSchema;
+const RPCResponseSchema = require('./schemas').RPCResponseSchema;
 
 describe('WAMPClient', () => {
 	let fakeSocket;
@@ -201,7 +201,7 @@ describe('WAMPClient', () => {
 					};
 					validWampServerResponse = {
 						procedure: validProcedure,
-						type: WAMPResponseSchema.id,
+						type: RPCResponseSchema.id,
 						signature: frozenSignature,
 						success: true,
 						error: null,
@@ -209,7 +209,7 @@ describe('WAMPClient', () => {
 					};
 					invalidWampServerResponse = {
 						procedure: validProcedure,
-						type: WAMPResponseSchema.id,
+						type: RPCResponseSchema.id,
 						signature: frozenSignature,
 						success: false,
 						error: validError,
@@ -218,7 +218,7 @@ describe('WAMPClient', () => {
 				});
 
 				it('should resolve with passed data when server responds when passed valid WAMPResult', (done) => {
-					expect(v.validate(validWampServerResponse, WAMPResponseSchema).valid).to.be.true();
+					expect(v.validate(validWampServerResponse, RPCResponseSchema).valid).to.be.true();
 
 					wampSocket.call(validProcedure).then((data) => {
 						expect(data).equal(validWampServerResponse.data);

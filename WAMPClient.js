@@ -51,7 +51,7 @@ class WAMPClient {
 		}
 		const wampSocket = socket;
 		wampSocket.on('rpc-response', (result) => {
-			if (schemas.isValid(result, schemas.WAMPResponseSchema)) {
+			if (schemas.isValid(result, schemas.RPCResponseSchema)) {
 				const resolvers = get(this.callsResolvers, `${result.procedure}.${result.signature}`);
 				if (resolvers) {
 					if (result.success) {

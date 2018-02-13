@@ -4,7 +4,7 @@ const sinon = require('sinon');
 const { expect } = require('./testSetup.spec');
 const MasterWAMPServer = require('./MasterWAMPServer');
 const MasterWAMPRequestSchema = require('./schemas').MasterWAMPRequestSchema;
-const WAMPResponseSchema = require('./schemas').WAMPResponseSchema;
+const RPCResponseSchema = require('./schemas').RPCResponseSchema;
 
 describe('MasterWAMPServer', () => {
 	let fakeSCServer;
@@ -194,7 +194,7 @@ describe('MasterWAMPServer', () => {
 				workerId: 0,
 				success: true,
 				data: validData,
-				type: WAMPResponseSchema.id,
+				type: RPCResponseSchema.id,
 				error: null,
 			});
 		});
@@ -207,7 +207,7 @@ describe('MasterWAMPServer', () => {
 				workerId: 0,
 				success: false,
 				data: validData,
-				type: WAMPResponseSchema.id,
+				type: RPCResponseSchema.id,
 				error: errorMessage,
 			});
 		});

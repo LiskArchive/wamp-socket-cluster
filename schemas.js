@@ -2,7 +2,7 @@ const Validator = require('jsonschema').Validator;
 
 const v = new Validator();
 
-const WAMPResponseSchema = {
+const RPCResponseSchema = {
 	id: '/WAMPResponse',
 	type: 'object',
 	properties: {
@@ -122,15 +122,15 @@ const MasterConfigRequestSchema = {
 
 
 const resToReqMap = {
-	[WAMPResponseSchema.id]: WAMPRequestSchema.id,
+	[RPCResponseSchema.id]: WAMPRequestSchema.id,
 	[MasterWAMPResponseSchema.id]: WAMPRequestSchema.id,
 	[InterProcessRPCResponseSchema.id]: InterProcessRPCRequestSchema.id,
 	[MasterConfigResponseSchema.id]: MasterConfigRequestSchema.id,
 };
 
 const reqToResMap = {
-	[WAMPRequestSchema.id]: WAMPResponseSchema.id,
-	[MasterWAMPRequestSchema.id]: WAMPResponseSchema.id,
+	[WAMPRequestSchema.id]: RPCResponseSchema.id,
+	[MasterWAMPRequestSchema.id]: RPCResponseSchema.id,
 	[InterProcessRPCRequestSchema.id]: InterProcessRPCResponseSchema.id,
 	[MasterConfigRequestSchema.id]: MasterConfigResponseSchema.id,
 };
@@ -139,7 +139,7 @@ const isValid = (obj, schema) => v.validate(obj, schema).valid && obj.type === s
 
 module.exports = {
 	WAMPRequestSchema,
-	WAMPResponseSchema,
+	RPCResponseSchema: RPCResponseSchema,
 	InterProcessRPCRequestSchema,
 	InterProcessRPCResponseSchema,
 	MasterWAMPResponseSchema,
