@@ -37,13 +37,9 @@ class WAMPServer {
 
 		// register Event endpoints
 		Object.keys(this.endpoints.event).forEach((event) => {
-			socket.on(event, (data) => {
-				this.processWAMPRequest({
-					type: schemas.EventRequestSchema.id,
-					procedure: event,
-					data,
-				}, socket);
-			});
+			if (typeof this.endpoints.event[event] === 'function') {
+				socket.on(event, this.endpoints.event[event]);
+			}
 		});
 
 		return socket;

@@ -28,17 +28,6 @@ const RPCRequestSchema = {
 	required: ['type', 'procedure'],
 };
 
-const EventRequestSchema = {
-	id: '/EventRequestSchema',
-	type: 'object',
-	properties: {
-		data: {},
-		procedure: { type: 'string' },
-		type: { type: 'string' },
-	},
-	required: ['type', 'procedure'],
-};
-
 const MasterRPCRequestSchema = {
 	id: '/MasterRPCRequest',
 	type: 'object',
@@ -128,7 +117,6 @@ module.exports = {
 	MasterRPCRequestSchema,
 	MasterConfigRequestSchema,
 	MasterConfigResponseSchema,
-	EventRequestSchema,
 	resToReqMap,
 	reqToResMap,
 	isValid,
