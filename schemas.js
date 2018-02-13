@@ -3,7 +3,7 @@ const Validator = require('jsonschema').Validator;
 const v = new Validator();
 
 const RPCResponseSchema = {
-	id: '/WAMPResponse',
+	id: '/RPCResponse',
 	type: 'object',
 	properties: {
 		data: {},
@@ -17,7 +17,7 @@ const RPCResponseSchema = {
 };
 
 const RPCRequestSchema = {
-	id: '/WAMPRequest',
+	id: '/RPCRequest',
 	type: 'object',
 	properties: {
 		data: {},
@@ -40,7 +40,7 @@ const EventRequestSchema = {
 };
 
 const MasterRPCRequestSchema = {
-	id: '/MasterWAMPRequest',
+	id: '/MasterRPCRequest',
 	type: 'object',
 	properties: {
 		data: {},
