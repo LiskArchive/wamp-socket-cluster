@@ -31,12 +31,11 @@ Client.prototype.connect = () => {
 Client.prototype.callRPCInInterval = () => {
 	const interval = setInterval(() => {
 		const randNumber = Math.floor(Math.random() * 5);
-		console.info('invoked multiplyByTwo RPC function with parameter: ', randNumber);
-		this.socket.wampSend('multiplyByTwo', randNumber)
+		this.socket.call('multiplyByTwo', randNumber)
 			.then(result => console.info(`RPC result: ${randNumber} * 2 = ${result}`))
-			.catch(err => console.error('RPC multiply by two error', err));
+			.catch(err => console.warn('RPC multiply by two error', err));
 
-		this.socket.wampSend('multiplyByThree', randNumber);
+		this.socket.emit('multiplyByThree', randNumber);
 	}, 1000);
 
 	this.socket.on('disconnect', () => {
