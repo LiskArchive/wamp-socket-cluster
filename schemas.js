@@ -16,7 +16,7 @@ const RPCResponseSchema = {
 	required: ['type', 'procedure', 'signature', 'success', 'error'],
 };
 
-const WAMPRequestSchema = {
+const RPCRequestSchema = {
 	id: '/WAMPRequest',
 	type: 'object',
 	properties: {
@@ -55,7 +55,7 @@ const MasterWAMPResponseSchema = {
 	required: ['workerId', 'socketId', 'signature', 'type', 'procedure', 'success'],
 };
 
-const MasterWAMPRequestSchema = {
+const MasterRPCRequestSchema = {
 	id: '/MasterWAMPRequest',
 	type: 'object',
 	properties: {
@@ -122,15 +122,15 @@ const MasterConfigRequestSchema = {
 
 
 const resToReqMap = {
-	[RPCResponseSchema.id]: WAMPRequestSchema.id,
-	[MasterWAMPResponseSchema.id]: WAMPRequestSchema.id,
+	[RPCResponseSchema.id]: RPCRequestSchema.id,
+	[MasterWAMPResponseSchema.id]: RPCRequestSchema.id,
 	[InterProcessRPCResponseSchema.id]: InterProcessRPCRequestSchema.id,
 	[MasterConfigResponseSchema.id]: MasterConfigRequestSchema.id,
 };
 
 const reqToResMap = {
-	[WAMPRequestSchema.id]: RPCResponseSchema.id,
-	[MasterWAMPRequestSchema.id]: RPCResponseSchema.id,
+	[RPCRequestSchema.id]: RPCResponseSchema.id,
+	[MasterRPCRequestSchema.id]: RPCResponseSchema.id,
 	[InterProcessRPCRequestSchema.id]: InterProcessRPCResponseSchema.id,
 	[MasterConfigRequestSchema.id]: MasterConfigResponseSchema.id,
 };
@@ -138,12 +138,12 @@ const reqToResMap = {
 const isValid = (obj, schema) => v.validate(obj, schema).valid && obj.type === schema.id;
 
 module.exports = {
-	WAMPRequestSchema,
+	RPCRequestSchema,
 	RPCResponseSchema: RPCResponseSchema,
 	InterProcessRPCRequestSchema,
 	InterProcessRPCResponseSchema,
 	MasterWAMPResponseSchema,
-	MasterWAMPRequestSchema,
+	MasterRPCRequestSchema,
 	MasterConfigRequestSchema,
 	MasterConfigResponseSchema,
 	EventRequestSchema,

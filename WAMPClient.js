@@ -95,7 +95,7 @@ class WAMPClient {
 				data,
 				procedure,
 				signature,
-				type: schemas.WAMPRequestSchema.id,
+				type: schemas.RPCRequestSchema.id,
 			});
 		});
 		return wampSocket;

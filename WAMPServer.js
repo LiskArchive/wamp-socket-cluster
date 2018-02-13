@@ -30,7 +30,7 @@ class WAMPServer {
 	upgradeToWAMP(socket) {
 		// register RPC endpoints
 		socket.on('rpc-request', (request) => {
-			if (schemas.isValid(request, schemas.WAMPRequestSchema)) {
+			if (schemas.isValid(request, schemas.RPCRequestSchema)) {
 				this.processWAMPRequest(request, socket);
 			}
 		});
@@ -50,7 +50,7 @@ class WAMPServer {
 	}
 
 	/**
-	 * @param {WAMPRequestSchema} request
+	 * @param {RPCRequestSchema} request
 	 * @param {SocketCluster.Socket} socket
 	 * @returns {undefined}
 	 */
@@ -67,7 +67,7 @@ class WAMPServer {
 
 	/**
 	 * @param {SocketCluster.Socket} socket
-	 * @param {WAMPRequestSchema} request
+	 * @param {RPCRequestSchema} request
 	 * @param {*} error
 	 * @param {*} data
 	 * @returns {undefined}
