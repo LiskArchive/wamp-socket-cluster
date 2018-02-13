@@ -38,11 +38,11 @@ class Worker extends SCWorker {
 		const scServer = this.scServer;
 
 		const wampServer = new WAMPServer();
+		wampServer.registerRPCEndpoints(rpcEndpoints);
+		wampServer.registerEventEndpoints(eventEndpoints);
 
 		scServer.on('connection', (socket) => {
 			wampServer.upgradeToWAMP(socket);
-			wampServer.registerRPCEndpoints(rpcEndpoints);
-			wampServer.registerEventEndpoints(eventEndpoints);
 		});
 	}
 }
