@@ -26,8 +26,7 @@ class SlaveWAMPServer extends WAMPServer {
 		this.config = {};
 		this.internalRequestsTimeoutMs = internalRequestsTimeoutMs;
 		this.worker.on('masterMessage', (response) => {
-			if (schemas.isValid(response, schemas.MasterWAMPResponseSchema) ||
-				schemas.isValid(response, schemas.RPCResponseSchema)) {
+			if (schemas.isValid(response, schemas.RPCResponseSchema)) {
 				const socket = this.sockets[response.socketId];
 				if (socket) {
 					delete response.socketId;

@@ -39,22 +39,6 @@ const EventRequestSchema = {
 	required: ['type', 'procedure'],
 };
 
-const MasterWAMPResponseSchema = {
-	id: '/MasterWAMPResponse',
-	type: 'object',
-	properties: {
-		data: {},
-		error: {},
-		procedure: { type: 'string' },
-		signature: { type: 'string' },
-		socketId: { type: 'string' },
-		success: { type: 'boolean' },
-		type: { type: 'string' },
-		workerId: { type: 'number' },
-	},
-	required: ['workerId', 'socketId', 'signature', 'type', 'procedure', 'success'],
-};
-
 const MasterRPCRequestSchema = {
 	id: '/MasterWAMPRequest',
 	type: 'object',
@@ -123,7 +107,6 @@ const MasterConfigRequestSchema = {
 
 const resToReqMap = {
 	[RPCResponseSchema.id]: RPCRequestSchema.id,
-	[MasterWAMPResponseSchema.id]: RPCRequestSchema.id,
 	[InterProcessRPCResponseSchema.id]: InterProcessRPCRequestSchema.id,
 	[MasterConfigResponseSchema.id]: MasterConfigRequestSchema.id,
 };
@@ -142,7 +125,6 @@ module.exports = {
 	RPCResponseSchema: RPCResponseSchema,
 	InterProcessRPCRequestSchema,
 	InterProcessRPCResponseSchema,
-	MasterWAMPResponseSchema,
 	MasterRPCRequestSchema,
 	MasterConfigRequestSchema,
 	MasterConfigResponseSchema,
