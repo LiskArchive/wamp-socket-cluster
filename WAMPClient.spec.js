@@ -161,7 +161,7 @@ describe('WAMPClient', () => {
 			it('should invoke socket.emit function with passed RPC query as second argument', () => {
 				wampSocket.call(validProcedure, someArgument);
 				const rpcQuery = wampSocket.emit.getCalls()[0].args[1];
-				expect(rpcQuery).to.have.property('data').eql({propA: 'valueA'});
+				expect(rpcQuery).to.have.property('data').eql({ propA: 'valueA' });
 				expect(rpcQuery).to.have.property('procedure').equal(validProcedure);
 				expect(rpcQuery).to.have.property('signature');
 				expect(rpcQuery).to.have.property('type').equal('/WAMPRequest');

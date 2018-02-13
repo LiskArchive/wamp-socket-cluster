@@ -15,7 +15,7 @@ const rpcEndpoints = {
 		} else {
 			cb(randomError, num * 2);
 		}
-	}
+	},
 };
 
 const eventEndpoints = {
@@ -27,7 +27,7 @@ const eventEndpoints = {
 		} else {
 			cb(randomError, num * 3);
 		}
-	}
+	},
 };
 
 const SCWorker = require('socketcluster/scworker');
@@ -46,5 +46,4 @@ class Worker extends SCWorker {
 		});
 	}
 }
-
-new Worker();
+module.exports = new Worker();

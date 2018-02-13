@@ -78,7 +78,7 @@ class WAMPClient {
 				this.callsResolvers[procedure] = {};
 			}
 			if (Object.keys(this.callsResolvers[procedure]).length >= WAMPClient.MAX_CALLS_ALLOWED) {
-				return  fail(`No more than ${WAMPClient.MAX_CALLS_ALLOWED} calls allowed`);
+				return fail(`No more than ${WAMPClient.MAX_CALLS_ALLOWED} calls allowed`);
 			}
 			const signature = WAMPClient.generateSignature(this.callsResolvers[procedure]);
 			if (!signature) {
@@ -91,7 +91,7 @@ class WAMPClient {
 
 			this.callsResolvers[procedure][signature] = { success, fail, requestTimeout };
 
-			socket.emit('rpc-request', {
+			return socket.emit('rpc-request', {
 				data,
 				procedure,
 				signature,

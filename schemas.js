@@ -111,7 +111,7 @@ const isValid = (obj, schema) => v.validate(obj, schema).valid && obj.type === s
 
 module.exports = {
 	RPCRequestSchema,
-	RPCResponseSchema: RPCResponseSchema,
+	RPCResponseSchema,
 	InterProcessRPCRequestSchema,
 	InterProcessRPCResponseSchema,
 	MasterRPCRequestSchema,
