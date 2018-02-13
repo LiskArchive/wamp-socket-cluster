@@ -1,9 +1,33 @@
+let counter = 0;
+
+/**
+ * All examples every third time will be:
+ * - returining valid result
+ * - returning example error
+ * - not replying at all causing timeouts
+ */
 const rpcEndpoints = {
-	multiplyByTwo: (num, cb) => cb(null, num * 2),
+	multiplyByTwo: (num, cb) => {
+		counter += 1;
+		const randomError = counter % 2 === 0 ? null : 'random occurring erorr';
+		if (counter % 3) {
+			console.info('For every 3rd call the response is randomly not being returned');
+		} else {
+			cb(randomError, num * 2);
+		}
+	}
 };
 
 const eventEndpoints = {
-	multiplyByThree: num => console.info(`On server event action 'multiplyByThree': ${num} * 3 = ${num * 3}`),
+	multiplyByThree: (num, cb) => {
+		counter += 1;
+		const randomError = counter % 2 === 0 ? null : 'random occurring erorr';
+		if (counter % 3) {
+			console.info('For every 3rd call the response is randomly not being returned');
+		} else {
+			cb(randomError, num * 3);
+		}
+	}
 };
 
 const SCWorker = require('socketcluster/scworker');
@@ -17,7 +41,6 @@ class Worker extends SCWorker {
 
 		scServer.on('connection', (socket) => {
 			wampServer.upgradeToWAMP(socket);
-
 			wampServer.registerRPCEndpoints(rpcEndpoints);
 			wampServer.registerEventEndpoints(eventEndpoints);
 		});

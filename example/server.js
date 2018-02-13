@@ -1,11 +1,13 @@
 const SocketCluster = require('socketcluster');
 
+const serverScenarioName = 'serverWorker';
+
 const options = {
 	workers: 1,
 	port: 8000,
 	wsEngine: 'uws',
 	appName: 'wampSocketCluster',
-	workerController: `${__dirname}/serverWorker.js`,
+	workerController: `${__dirname}/${serverScenarioName}`,
 };
 
 const SOCKET_CLUSTER_KEY = Symbol.for('App.SocketClusterServer');
