@@ -46,7 +46,7 @@ class WAMPClient {
 	 * @returns {Object} wampSocket
 	 */
 	upgradeToWAMP(socket) {
-		if (socket.call && socket.listeners('raw').length) {
+		if (socket.call && socket.listeners('rpc-response').length) {
 			return socket;
 		}
 		const wampSocket = socket;
