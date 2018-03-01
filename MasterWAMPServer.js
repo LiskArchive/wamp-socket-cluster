@@ -10,15 +10,9 @@ class MasterWAMPServer extends WAMPServer {
 		super();
 		this.socketCluster = socketCluster;
 		this.workerIndices = [];
-
+		this.config = config;
 		socketCluster.on('workerStart', (worker) => {
-			this.reply(null, {
-				registeredEvents: Object.keys(this.endpoints.event),
-				config: config || {},
-				type: schemas.MasterConfigRequestSchema.id,
-				workerId: worker.id,
-			});
-
+			this.broadcastConfigToWorkers([worker.id]);
 			this.workerIndices.push(worker.id);
 		});
 
@@ -49,6 +43,39 @@ class MasterWAMPServer extends WAMPServer {
 	reply(socket, request, error, data) {
 		const payload = MasterWAMPServer.createResponsePayload(request, error, data);
 		return this.socketCluster.sendToWorker(request.workerId, payload);
+	}
+
+	/**
+	 * @param [Array] workerIds
+	 * @returns {undefined}
+	 */
+	broadcastConfigToWorkers(workerIds) {
+		workerIds.forEach((workerId) => {
+			this.reply(null, {
+				registeredEvents: Object.keys(this.endpoints.event),
+				config: this.config || {},
+				type: schemas.MasterConfigRequestSchema.id,
+				workerId,
+			});
+		});
+	}
+
+	/**
+	 * @param {Map<RPCEndpoint>} endpoints
+	 * @returns {undefined}
+	 */
+	registerEventEndpoints(endpoints) {
+		super.registerEventEndpoints(endpoints);
+		this.broadcastConfigToWorkers(this.workerIndices);
+	}
+
+	/**
+	 * @param {Map<RPCEndpoint>} endpoints
+	 * @returns {undefined}
+	 */
+	registerRPCEndpoints(endpoints) {
+		super.registerRPCEndpoints(endpoints);
+		this.broadcastConfigToWorkers(this.workerIndices);
 	}
 }
 
