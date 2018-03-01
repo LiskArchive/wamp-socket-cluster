@@ -28,6 +28,17 @@ const RPCRequestSchema = {
 	required: ['type', 'procedure'],
 };
 
+const EventRequestSchema = {
+	id: '/EventRequestSchema',
+	type: 'object',
+	properties: {
+		data: {},
+		procedure: { type: 'string' },
+		type: { type: 'string' },
+	},
+	required: ['type', 'procedure'],
+};
+
 const MasterRPCRequestSchema = {
 	id: '/MasterRPCRequest',
 	type: 'object',
@@ -110,6 +121,7 @@ const reqToResMap = {
 const isValid = (obj, schema) => v.validate(obj, schema).valid && obj.type === schema.id;
 
 module.exports = {
+	EventRequestSchema,
 	RPCRequestSchema,
 	RPCResponseSchema,
 	InterProcessRPCRequestSchema,

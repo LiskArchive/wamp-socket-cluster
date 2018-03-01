@@ -23,7 +23,8 @@ class MasterWAMPServer extends WAMPServer {
 		});
 
 		socketCluster.on('workerMessage', (worker, request) => {
-			if (schemas.isValid(request, schemas.MasterRPCRequestSchema) ||
+			if (schemas.isValid(request, schemas.EventRequestSchema) ||
+				schemas.isValid(request, schemas.MasterRPCRequestSchema) ||
 				schemas.isValid(request, schemas.InterProcessRPCRequestSchema)) {
 				this.processWAMPRequest(request, null);
 			}

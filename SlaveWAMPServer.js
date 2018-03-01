@@ -46,7 +46,13 @@ class SlaveWAMPServer extends WAMPServer {
 				this.config = Object.assign({}, this.config, response.config);
 				if (response.registeredEvents) {
 					this.registerEventEndpoints(response.registeredEvents.reduce(
-						(memo, event) => Object.assign(memo, { [event]: () => {} }), {}));
+						(memo, event) => Object.assign(memo, { [event]: (data) => {
+							this.worker.sendToMaster({
+								data,
+								procedure: event,
+								type: schemas.EventRequestSchema.id,
+							});
+						} }), {}));
 				}
 				configuredCb(null, this);
 			}
