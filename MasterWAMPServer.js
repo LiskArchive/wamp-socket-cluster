@@ -46,7 +46,7 @@ class MasterWAMPServer extends WAMPServer {
 	}
 
 	/**
-	 * @param [Array] workerIds
+	 * @param {Array} workerIds
 	 * @returns {undefined}
 	 */
 	broadcastConfigToWorkers(workerIds) {
