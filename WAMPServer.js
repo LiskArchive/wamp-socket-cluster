@@ -34,7 +34,6 @@ class WAMPServer {
 				this.processWAMPRequest(request, socket);
 			}
 		});
-
 		// register Event endpoints
 		Object.keys(this.endpoints.event).forEach((event) => {
 			if (typeof this.endpoints.event[event] === 'function') {
@@ -51,14 +50,19 @@ class WAMPServer {
 	 * @returns {undefined}
 	 */
 	processWAMPRequest(request, socket) {
-		if (this.endpoints.rpc[request.procedure] &&
-			typeof this.endpoints.rpc[request.procedure] === 'function') {
+		const isValidWAMPEndpoint = (endpointType, procedure) =>
+			this.endpoints[endpointType][procedure] &&
+			typeof this.endpoints[endpointType][procedure] === 'function';
+
+		if (isValidWAMPEndpoint('rpc', request.procedure)) {
 			return this.endpoints.rpc[request.procedure](request.data,
 				this.reply.bind(this, socket, request));
+		} else if (isValidWAMPEndpoint('event', request.procedure)) {
+			return this.endpoints.event[request.procedure](request.data);
 		}
 		return this.reply(socket, request,
 			`Procedure ${request.procedure} not registered on WAMPServer. 
-			Available commands: ${JSON.stringify(Object.keys(this.endpoints.rpc))}`, null);
+			Available commands: ${this.endpoints}`, null);
 	}
 
 	/**
