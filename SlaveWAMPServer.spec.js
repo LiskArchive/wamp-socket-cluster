@@ -163,12 +163,12 @@ describe('SlaveWAMPServer', () => {
 
 			validWAMPRequest = {
 				procedure: 'procedureName',
-				type: '/WAMPRequest',
+				type: '/RPCRequest',
 			};
 
 			validSlaveToMasterRequest = {
 				procedure: 'procedureName',
-				type: '/MasterWAMPRequest',
+				type: '/MasterRPCRequest',
 				socketId: 'validSocketId',
 				workerId: 0,
 			};
@@ -187,7 +187,7 @@ describe('SlaveWAMPServer', () => {
 			expect(endpoint.procedureName.calledOnce).to.be.true();
 			expect(endpoint.procedureName.calledWith({
 				procedure: 'procedureName',
-				type: '/WAMPRequest',
+				type: '/RPCRequest',
 				socketId: 'validSocketId',
 				workerId: 0,
 			})).to.be.true();
@@ -202,7 +202,7 @@ describe('SlaveWAMPServer', () => {
 			expect(endpoint.procedureName.calledOnce).to.be.true();
 			expect(endpoint.procedureName.calledWith({
 				procedure: 'procedureName',
-				type: '/WAMPRequest',
+				type: '/RPCRequest',
 				socketId: 'validSocketId',
 				workerId: 0,
 			})).to.be.true();
@@ -218,7 +218,7 @@ describe('SlaveWAMPServer', () => {
 			expect(endpoint.procedureName.calledOnce).to.be.true();
 			expect(endpoint.procedureName.calledWith({
 				procedure: 'procedureName',
-				type: '/WAMPRequest',
+				type: '/RPCRequest',
 				socketId: 'validSocketId',
 				workerId: 0,
 			})).to.be.true();

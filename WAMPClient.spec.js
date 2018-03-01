@@ -164,7 +164,7 @@ describe('WAMPClient', () => {
 				expect(rpcQuery).to.have.property('data').eql({ propA: 'valueA' });
 				expect(rpcQuery).to.have.property('procedure').equal(validProcedure);
 				expect(rpcQuery).to.have.property('signature');
-				expect(rpcQuery).to.have.property('type').equal('/WAMPRequest');
+				expect(rpcQuery).to.have.property('type').equal('/RPCRequest');
 			});
 
 			it('should invoke socket.on function', () => {
