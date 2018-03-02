@@ -9,7 +9,7 @@ let counter = 0;
 const rpcEndpoints = {
 	multiplyByTwo: (num, cb) => {
 		counter += 1;
-		const randomError = counter % 2 === 0 ? null : 'random occurring erorr';
+		const randomError = counter % 2 === 0 ? null : 'random occurring error';
 		if (counter % 3) {
 			console.info('For every 3rd call the response is randomly not being returned');
 		} else {
@@ -21,7 +21,7 @@ const rpcEndpoints = {
 const eventEndpoints = {
 	multiplyByThree: (num, cb) => {
 		counter += 1;
-		const randomError = counter % 2 === 0 ? null : 'random occurring erorr';
+		const randomError = counter % 2 === 0 ? null : 'random occurring error';
 		if (counter % 3) {
 			console.info('For every 3rd call the response is randomly not being returned');
 		} else {
