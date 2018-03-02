@@ -46,22 +46,12 @@ class WAMPClient {
 	 * @returns {Object} wampSocket
 	 */
 	upgradeToWAMP(socket) {
-		if (socket.wampSend && socket.listeners('raw').length) {
+		if (socket.call && socket.listeners('rpc-response').length) {
 			return socket;
 		}
 		const wampSocket = socket;
-
-		const enforceObject = (any) => {
-			try {
-				return JSON.parse(any);
-			} catch (ex) {
-				return any;
-			}
-		};
-
-		wampSocket.on('raw', (rawResult) => {
-			const result = enforceObject(rawResult);
-			if (schemas.isValid(result, schemas.WAMPResponseSchema)) {
+		wampSocket.on('rpc-response', (result) => {
+			if (schemas.isValid(result, schemas.RPCResponseSchema)) {
 				const resolvers = get(this.callsResolvers, `${result.procedure}.${result.signature}`);
 				if (resolvers) {
 					if (result.success) {
@@ -83,30 +73,30 @@ class WAMPClient {
 		 * @param {*} data
 		 * @returns {Promise}
 		 */
-		wampSocket.wampSend = (procedure, data) => new Promise((success, fail) => {
+		wampSocket.call = (procedure, data) => new Promise((success, fail) => {
 			if (!this.callsResolvers[procedure]) {
 				this.callsResolvers[procedure] = {};
 			}
 			if (Object.keys(this.callsResolvers[procedure]).length >= WAMPClient.MAX_CALLS_ALLOWED) {
-				fail(`No more than ${WAMPClient.MAX_CALLS_ALLOWED} calls allowed`);
-			} else {
-				const signature = WAMPClient.generateSignature(this.callsResolvers[procedure]);
-				if (!signature) {
-					fail(`Failed to generate proper signature ${WAMPClient.MAX_GENERATE_ATTEMPTS} times`);
-				} else {
-					const requestTimeout = setTimeout(() => {
-						delete this.callsResolvers[procedure][signature];
-						fail('RPC response timeout exceeded');
-					}, this.requestsTimeoutMs);
-					this.callsResolvers[procedure][signature] = { success, fail, requestTimeout };
-					socket.send(JSON.stringify({
-						data,
-						procedure,
-						signature,
-						type: schemas.WAMPRequestSchema.id,
-					}));
-				}
+				return fail(`No more than ${WAMPClient.MAX_CALLS_ALLOWED} calls allowed`);
 			}
+			const signature = WAMPClient.generateSignature(this.callsResolvers[procedure]);
+			if (!signature) {
+				return fail(`Failed to generate proper signature ${WAMPClient.MAX_GENERATE_ATTEMPTS} times`);
+			}
+			const requestTimeout = setTimeout(() => {
+				delete this.callsResolvers[procedure][signature];
+				fail('RPC response timeout exceeded');
+			}, this.requestsTimeoutMs);
+
+			this.callsResolvers[procedure][signature] = { success, fail, requestTimeout };
+
+			return socket.emit('rpc-request', {
+				data,
+				procedure,
+				signature,
+				type: schemas.RPCRequestSchema.id,
+			});
 		});
 		return wampSocket;
 	}

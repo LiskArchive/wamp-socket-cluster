@@ -29,63 +29,52 @@ class WAMPServer {
 	 */
 	upgradeToWAMP(socket) {
 		// register RPC endpoints
-		socket.on('raw', (request) => {
-			let parsedRequest;
-			try {
-				parsedRequest = JSON.parse(request);
-			} catch (ex) {
-				return;
-			}
-			if (schemas.isValid(parsedRequest, schemas.WAMPRequestSchema)) {
-				this.processWAMPRequest(parsedRequest, socket);
+		socket.on('rpc-request', (request) => {
+			if (schemas.isValid(request, schemas.RPCRequestSchema)) {
+				this.processWAMPRequest(request, socket);
 			}
 		});
-
 		// register Event endpoints
 		Object.keys(this.endpoints.event).forEach((event) => {
-			socket.on(event, (data) => {
-				this.processWAMPRequest({
-					type: schemas.EventRequestSchema.id,
-					procedure: event,
-					data,
-				}, socket);
-			});
+			if (typeof this.endpoints.event[event] === 'function') {
+				socket.on(event, this.endpoints.event[event]);
+			}
 		});
 
 		return socket;
 	}
 
 	/**
-	 * @param {WAMPRequestSchema} request
+	 * @param {RPCRequestSchema} request
 	 * @param {SocketCluster.Socket} socket
 	 * @returns {undefined}
 	 */
 	processWAMPRequest(request, socket) {
-		if (this.endpoints.rpc[request.procedure] &&
-			typeof this.endpoints.rpc[request.procedure] === 'function') {
+		const isValidWAMPEndpoint = (endpointType, procedure) =>
+			this.endpoints[endpointType][procedure] &&
+			typeof this.endpoints[endpointType][procedure] === 'function';
+
+		if (isValidWAMPEndpoint('rpc', request.procedure)) {
 			return this.endpoints.rpc[request.procedure](request.data,
 				this.reply.bind(this, socket, request));
-		} else if (this.endpoints.event[request.procedure] &&
-			typeof this.endpoints.event[request.procedure] === 'function') {
+		} else if (isValidWAMPEndpoint('event', request.procedure)) {
 			return this.endpoints.event[request.procedure](request.data);
 		}
-
 		return this.reply(socket, request,
 			`Procedure ${request.procedure} not registered on WAMPServer. 
-			Available commands: ${JSON.stringify(Object.keys(this.endpoints.rpc))}`, null);
+			Available commands: ${this.endpoints}`, null);
 	}
 
 	/**
 	 * @param {SocketCluster.Socket} socket
-	 * @param {WAMPRequestSchema} request
+	 * @param {RPCRequestSchema} request
 	 * @param {*} error
 	 * @param {*} data
 	 * @returns {undefined}
 	 */
 	/* eslint class-methods-use-this: 0 */
 	reply(socket, request, error, data) {
-		const payload = WAMPServer.createResponsePayload(request, error, data);
-		socket.send(JSON.stringify(payload));
+		socket.emit('rpc-response', WAMPServer.createResponsePayload(request, error, data));
 	}
 
 	/**

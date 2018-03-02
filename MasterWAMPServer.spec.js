@@ -3,8 +3,8 @@
 const sinon = require('sinon');
 const { expect } = require('./testSetup.spec');
 const MasterWAMPServer = require('./MasterWAMPServer');
-const MasterWAMPRequestSchema = require('./schemas').MasterWAMPRequestSchema;
-const WAMPResponseSchema = require('./schemas').WAMPResponseSchema;
+const MasterRPCRequestSchema = require('./schemas').MasterRPCRequestSchema;
+const RPCResponseSchema = require('./schemas').RPCResponseSchema;
 
 describe('MasterWAMPServer', () => {
 	let fakeSCServer;
@@ -43,7 +43,7 @@ describe('MasterWAMPServer', () => {
 			const validMasterWAMPRequest = {
 				workerId: 0,
 				socketId: 'AYX',
-				type: MasterWAMPRequestSchema.id,
+				type: MasterRPCRequestSchema.id,
 				procedure: 'methodA',
 				signature: '0',
 				data: {},
@@ -80,13 +80,13 @@ describe('MasterWAMPServer', () => {
 					expect(masterWAMPServer.processWAMPRequest.called).to.be.true();
 				});
 
-				it('should call processWAMPRequest when proper MasterWAMPRequestSchema with received request', () => {
+				it('should call processWAMPRequest when proper MasterRPCRequestSchema with received request', () => {
 					onWorkerMessageHandler(validWorkerId, validMasterWAMPRequest);
 					expect(masterWAMPServer.processWAMPRequest.calledWith(validMasterWAMPRequest))
 						.to.be.true();
 				});
 
-				it('should not call processWAMPRequest when invalid MasterWAMPRequestSchema passed', () => {
+				it('should not call processWAMPRequest when invalid MasterRPCRequestSchema passed', () => {
 					const invalidMasterWAMPCall = Object.assign({}, validMasterWAMPRequest, { type: 'invalid' });
 					onWorkerMessageHandler(validWorkerId, invalidMasterWAMPCall);
 					expect(masterWAMPServer.processWAMPRequest.called).not.to.be.true();
@@ -182,7 +182,7 @@ describe('MasterWAMPServer', () => {
 		beforeEach(() => {
 			validRequest = {
 				workerId: validWorkerId,
-				type: MasterWAMPRequestSchema.id,
+				type: MasterRPCRequestSchema.id,
 			};
 			validData = { validKey: 'validValue' };
 		});
@@ -194,7 +194,7 @@ describe('MasterWAMPServer', () => {
 				workerId: 0,
 				success: true,
 				data: validData,
-				type: WAMPResponseSchema.id,
+				type: RPCResponseSchema.id,
 				error: null,
 			});
 		});
@@ -207,7 +207,7 @@ describe('MasterWAMPServer', () => {
 				workerId: 0,
 				success: false,
 				data: validData,
-				type: WAMPResponseSchema.id,
+				type: RPCResponseSchema.id,
 				error: errorMessage,
 			});
 		});

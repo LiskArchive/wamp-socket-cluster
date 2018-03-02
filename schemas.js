@@ -2,8 +2,8 @@ const Validator = require('jsonschema').Validator;
 
 const v = new Validator();
 
-const WAMPResponseSchema = {
-	id: '/WAMPResponse',
+const RPCResponseSchema = {
+	id: '/RPCResponse',
 	type: 'object',
 	properties: {
 		data: {},
@@ -16,8 +16,8 @@ const WAMPResponseSchema = {
 	required: ['type', 'procedure', 'signature', 'success', 'error'],
 };
 
-const WAMPRequestSchema = {
-	id: '/WAMPRequest',
+const RPCRequestSchema = {
+	id: '/RPCRequest',
 	type: 'object',
 	properties: {
 		data: {},
@@ -39,24 +39,8 @@ const EventRequestSchema = {
 	required: ['type', 'procedure'],
 };
 
-const MasterWAMPResponseSchema = {
-	id: '/MasterWAMPResponse',
-	type: 'object',
-	properties: {
-		data: {},
-		error: {},
-		procedure: { type: 'string' },
-		signature: { type: 'string' },
-		socketId: { type: 'string' },
-		success: { type: 'boolean' },
-		type: { type: 'string' },
-		workerId: { type: 'number' },
-	},
-	required: ['workerId', 'socketId', 'signature', 'type', 'procedure', 'success'],
-};
-
-const MasterWAMPRequestSchema = {
-	id: '/MasterWAMPRequest',
+const MasterRPCRequestSchema = {
+	id: '/MasterRPCRequest',
 	type: 'object',
 	properties: {
 		data: {},
@@ -122,15 +106,14 @@ const MasterConfigRequestSchema = {
 
 
 const resToReqMap = {
-	[WAMPResponseSchema.id]: WAMPRequestSchema.id,
-	[MasterWAMPResponseSchema.id]: WAMPRequestSchema.id,
+	[RPCResponseSchema.id]: RPCRequestSchema.id,
 	[InterProcessRPCResponseSchema.id]: InterProcessRPCRequestSchema.id,
 	[MasterConfigResponseSchema.id]: MasterConfigRequestSchema.id,
 };
 
 const reqToResMap = {
-	[WAMPRequestSchema.id]: WAMPResponseSchema.id,
-	[MasterWAMPRequestSchema.id]: WAMPResponseSchema.id,
+	[RPCRequestSchema.id]: RPCResponseSchema.id,
+	[MasterRPCRequestSchema.id]: RPCResponseSchema.id,
 	[InterProcessRPCRequestSchema.id]: InterProcessRPCResponseSchema.id,
 	[MasterConfigRequestSchema.id]: MasterConfigResponseSchema.id,
 };
@@ -138,15 +121,14 @@ const reqToResMap = {
 const isValid = (obj, schema) => v.validate(obj, schema).valid && obj.type === schema.id;
 
 module.exports = {
-	WAMPRequestSchema,
-	WAMPResponseSchema,
+	EventRequestSchema,
+	RPCRequestSchema,
+	RPCResponseSchema,
 	InterProcessRPCRequestSchema,
 	InterProcessRPCResponseSchema,
-	MasterWAMPResponseSchema,
-	MasterWAMPRequestSchema,
+	MasterRPCRequestSchema,
 	MasterConfigRequestSchema,
 	MasterConfigResponseSchema,
-	EventRequestSchema,
 	resToReqMap,
 	reqToResMap,
 	isValid,
