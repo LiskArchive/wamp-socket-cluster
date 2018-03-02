@@ -25,7 +25,6 @@ class SlaveWAMPServer extends WAMPServer {
 		this.endpoints.slaveRpc = {};
 		this.config = {};
 		this.internalRequestsTimeoutMs = internalRequestsTimeoutMs;
-		this.configuredCb = configuredCb;
 		this.worker.on('masterMessage', (response) => {
 			if (schemas.isValid(response, schemas.RPCResponseSchema)) {
 				const socket = this.sockets[response.socketId];
@@ -55,8 +54,8 @@ class SlaveWAMPServer extends WAMPServer {
 							});
 						} }), {}));
 				}
-				this.configuredCb(null, this);
-				this.configuredCb = null;
+				configuredCb(null, this);
+				configuredCb = () => {};
 			}
 		});
 	}
