@@ -243,30 +243,16 @@ describe('WAMPClient', () => {
 					mockedServerResponse(invalidWampServerResponse);
 				});
 
-
-				it('should throw an error when no request signature provided', (done) => {
-					wampSocket.call(validProcedure);
-					const mockedServerResponse = wampSocket.on.getCalls()[0].args[1];
-					try {
-						mockedServerResponse(validWampServerResponse);
-					} catch (err) {
-						expect(err.toString()).equal(`Error: Unable to find resolving function for procedure ${validProcedure} with signature undefined`);
-						done();
-					}
-					done();
-				});
-
-				it('should throw an error when provided an invalid request signature', (done) => {
+				it('should log an error when provided with invalid request signature', (done) => {
 					invalidWampServerResponse.signature = 'invalid signature';
 					const sampleWampServerResponse = Object.assign(someArgument, invalidWampServerResponse);
+					const consoleLogStub = sinon.stub(console, 'log');
 					wampSocket.call(validProcedure);
 					const mockedServerResponse = wampSocket.on.getCalls()[0].args[1];
-					try {
-						mockedServerResponse(sampleWampServerResponse);
-					} catch (err) {
-						expect(err.toString()).equal(`Error: Unable to find resolving function for procedure ${validProcedure} with signature ${sampleWampServerResponse.signature}`);
-						done();
-					}
+
+					mockedServerResponse(sampleWampServerResponse);
+					expect(consoleLogStub.calledWith('Unable to find resolving function for procedure validProcedure with signature invalid signature')).to.be.true();
+					done();
 				});
 
 				describe('when requestsTimeoutMs is exceeded', () => {
