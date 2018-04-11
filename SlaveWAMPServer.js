@@ -34,7 +34,7 @@ class SlaveWAMPServer extends WAMPServer {
 					response.type = schemas.RPCRequestSchema.id;
 					this.reply(socket, response, response.error, response.data);
 				} else {
-					throw new Error('Socket that requested RPC call not found anymore');
+					console.log('Socket that requested RPC call not found anymore');
 				}
 			} else if (schemas.isValid(response, schemas.InterProcessRPCResponseSchema)) {
 				const callback = this.getCall(response);
