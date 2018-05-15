@@ -28,12 +28,6 @@ describe('WAMPClient', () => {
 			on: sinon.spy(),
 		};
 	});
-	describe('constructor', () => {
-		it('create wampClient with callsResolver field', () => {
-			const wampClient = new WAMPClient();
-			expect(wampClient).to.have.property('callsResolvers').to.be.a('object').and.to.be.empty();
-		});
-	});
 
 	describe('upgradeToWAMP', () => {
 		it('should add emit function to given parameter', () => {
@@ -46,22 +40,6 @@ describe('WAMPClient', () => {
 			fakeSocket.listeners = () => ({ length: true });
 			const returnedSocket = new WAMPClient().upgradeToWAMP(fakeSocket);
 			expect(returnedSocket).to.equal(fakeSocket);
-		});
-	});
-
-	describe('generateSignature', () => {
-		it('should generate a signature when empty procedureCalls are passed', () => {
-			expect(WAMPClient.generateSignature({})).not.to.be.empty();
-		});
-
-		it('should generate a signature matching expected format', () => {
-			expect(WAMPClient.generateSignature({})).to.be.a('string').and.to.match(/[0-9]{13}_[0-9]{1,6}/);
-		});
-
-		it('should return null while attempting to find a signature fails more than MAX_GENERATE_ATTEMPTS times', () => {
-			const mathRandomStub = sinon.stub(Math, 'random').returns(0);
-			expect(WAMPClient.generateSignature({ [frozenSignature]: true })).to.be.null();
-			mathRandomStub.restore();
 		});
 	});
 
@@ -84,51 +62,6 @@ describe('WAMPClient', () => {
 
 			it('should return a promise', () => {
 				expect(wampSocket.call()).to.be.a('promise');
-			});
-
-			it('should create correct entry in wampClient.callsResolvers', () => {
-				wampSocket.call(validProcedure);
-				expect(Object.keys(wampClient.callsResolvers[validProcedure]).length).equal(1);
-				const signature = Object.keys(wampClient.callsResolvers[validProcedure])[0];
-
-				expect(wampClient.callsResolvers[validProcedure][signature]).to.have.all.keys('success', 'fail', 'requestTimeout');
-				expect(wampClient.callsResolvers[validProcedure][signature].success).to.be.a('function');
-				expect(wampClient.callsResolvers[validProcedure][signature].fail).to.be.a('function');
-				expect(wampClient.callsResolvers[validProcedure][signature].requestTimeout).to.be.an('object');
-			});
-
-			it('should create 2 correct entries for calling twice the same procedure', () => {
-				wampSocket.call(validProcedure);
-				wampSocket.call(validProcedure);
-				expect(Object.keys(wampClient.callsResolvers).length).equal(1);
-				expect(Object.keys(wampClient.callsResolvers[validProcedure]).length).equal(2);
-				const signatureA = Object.keys(wampClient.callsResolvers[validProcedure])[0];
-				const signatureB = Object.keys(wampClient.callsResolvers[validProcedure])[1];
-
-				expect(signatureA).to.not.equal(signatureB);
-			});
-
-
-			it('should create 2 correct entries for calling twice different procedures', () => {
-				const procedureA = 'procedureA';
-				const procedureB = 'procedureB';
-				wampSocket.call(procedureA);
-				wampSocket.call(procedureB);
-				expect(Object.keys(wampClient.callsResolvers).length).equal(2);
-				expect(Object.keys(wampClient.callsResolvers[procedureA]).length).equal(1);
-				expect(Object.keys(wampClient.callsResolvers[procedureB]).length).equal(1);
-			});
-
-			it('should fail while it is impossible to generate a signature', (done) => {
-				wampClient.callsResolvers = { [validProcedure]: { [frozenSignature]: true } };
-				const mathRandomStub = sinon.stub(Math, 'random').returns(0);
-				wampSocket.call(validProcedure)
-					.then(() => done('should not be here'))
-					.catch((error) => {
-						expect(error).to.equal('Failed to generate proper signature 10000 times');
-						return done();
-					});
-				mathRandomStub.restore();
 			});
 
 			it('should invoke socket.emit function', () => {

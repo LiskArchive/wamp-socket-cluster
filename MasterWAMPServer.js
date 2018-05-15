@@ -16,11 +16,11 @@ class MasterWAMPServer extends WAMPServer {
 			this.workerIndices.push(worker.id);
 		});
 
-		socketCluster.on('workerMessage', (worker, request) => {
+		socketCluster.on('workerMessage', (workerId, request, respond) => {
 			if (schemas.isValid(request, schemas.EventRequestSchema) ||
 				schemas.isValid(request, schemas.MasterRPCRequestSchema) ||
 				schemas.isValid(request, schemas.InterProcessRPCRequestSchema)) {
-				this.processWAMPRequest(request, null);
+				this.processWAMPRequest(request, respond);
 			}
 		});
 
@@ -34,28 +34,15 @@ class MasterWAMPServer extends WAMPServer {
 	}
 
 	/**
-	 * @param {SocketCluster.Socket} socket
-	 * @param {RPCRequestSchema} request
-	 * @param {*} error
-	 * @param {*} data
-	 * @returns {undefined}
-	 */
-	reply(socket, request, error, data) {
-		const payload = MasterWAMPServer.createResponsePayload(request, error, data);
-		return this.socketCluster.sendToWorker(request.workerId, payload);
-	}
-
-	/**
 	 * @param {Array} workerIds
 	 * @returns {undefined}
 	 */
 	broadcastConfigToWorkers(workerIds) {
 		workerIds.forEach((workerId) => {
-			this.reply(null, {
+			this.socketCluster.sendToWorker(workerId, {
+				type: schemas.MasterConfigRequestSchema.id,
 				registeredEvents: Object.keys(this.endpoints.event),
 				config: this.config || {},
-				type: schemas.MasterConfigRequestSchema.id,
-				workerId,
 			});
 		});
 	}

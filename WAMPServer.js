@@ -16,7 +16,7 @@ class WAMPServer {
 		// register RPC endpoints
 		socket.on('rpc-request', (request, respond) => {
 			if (schemas.isValid(request, schemas.RPCRequestSchema)) {
-				this.processWAMPRequest(request, socket, respond);
+				this.processWAMPRequest(request, respond);
 			} else {
 				respond(`Failed to process RPC request "${request.procedure}" because the request schema was not valid`);
 			}
@@ -33,10 +33,10 @@ class WAMPServer {
 
 	/**
 	 * @param {RPCRequestSchema} request
-	 * @param {SocketCluster.Socket} socket
+	 * @param {function} respond
 	 * @returns {undefined}
 	 */
-	processWAMPRequest(request, socket, respond) {
+	processWAMPRequest(request, respond) {
 		const isValidWAMPEndpoint = (endpointType, procedure) =>
 			this.endpoints[endpointType][procedure] &&
 			typeof this.endpoints[endpointType][procedure] === 'function';
@@ -44,7 +44,8 @@ class WAMPServer {
 		if (isValidWAMPEndpoint('rpc', request.procedure)) {
 			return this.endpoints.rpc[request.procedure](request.data, (error, data) => {
 				respond(error, {
-					data
+					type: schemas.RPCResponseSchema.id,
+					data,
 				});
 			});
 		} else if (isValidWAMPEndpoint('event', request.procedure)) {

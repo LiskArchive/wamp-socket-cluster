@@ -21,31 +21,14 @@ class SlaveWAMPServer extends WAMPServer {
 		super();
 		this.worker = worker;
 		this.sockets = worker.scServer.clients;
-		this.interProcessRPC = {};
 		this.endpoints.slaveRpc = {};
 		this.config = {};
 		this.internalRequestsTimeoutMs = internalRequestsTimeoutMs;
-		this.worker.on('masterMessage', (response) => {
-			if (schemas.isValid(response, schemas.RPCResponseSchema)) {
-				const socket = this.sockets[response.socketId];
-				if (socket) {
-					delete response.socketId;
-					delete response.workerId;
-					response.type = schemas.RPCRequestSchema.id;
-					this.reply(socket, response, response.error, response.data);
-				} else {
-					console.log('Socket that requested RPC call not found anymore');
-				}
-			} else if (schemas.isValid(response, schemas.InterProcessRPCResponseSchema)) {
-				const callback = this.getCall(response);
-				if (callback) {
-					callback(response.error, response.data);
-					this.deleteCall(response);
-				}
-			} else if (schemas.isValid(response, schemas.MasterConfigResponseSchema)) {
-				this.config = Object.assign({}, this.config, response.config);
-				if (response.registeredEvents) {
-					this.registerEventEndpoints(response.registeredEvents.reduce(
+		this.worker.on('masterMessage', (payload, respond) => {
+			if (schemas.isValid(payload, schemas.MasterConfigRequestSchema)) {
+				this.config = Object.assign({}, this.config, payload.config);
+				if (payload.registeredEvents) {
+					this.registerEventEndpoints(payload.registeredEvents.reduce(
 						(memo, event) => Object.assign(memo, { [event]: (data) => {
 							this.worker.sendToMaster({
 								data,
@@ -56,149 +39,56 @@ class SlaveWAMPServer extends WAMPServer {
 				}
 				configuredCb(null, this);
 				configuredCb = () => {};
+			} else {
+				console.error(`Received invalid master message payload of type "${payload.type}"`);
 			}
 		});
-	}
-
-	/**
-	 * @param {Object}[request={}] request
-	 * @returns {RPCRequestSchema}
-	 */
-	static normalizeRequest(request = {}) {
-		if (!request.procedure || typeof request.procedure !== 'string') {
-			throw new Error(`Wrong format of requested procedure: ${request.procedure}`);
-		}
-		if (!request.socketId || typeof request.socketId !== 'string') {
-			throw new Error(`Wrong format of requested socket id: ${request.socketId}`);
-		}
-		request.procedure = request.procedure.replace(/\./g, '');
-		request.socketId = request.socketId.replace(/\./g, '');
-		return request;
 	}
 
 	/**
 	 * @param {string} procedure
 	 * @param {*} data
-	 * @param {string} socketId
-	 * @param {Function} cb
+	 * @param {Function} callback
 	 * @returns {undefined}
 	 */
-	sendToMaster(procedure, data, socketId, cb) {
-		const req = SlaveWAMPServer.normalizeRequest({
+	sendToMaster(procedure, data, callback) {
+		const req = {
 			type: schemas.InterProcessRPCRequestSchema.id,
 			procedure,
 			data,
-			socketId,
-			workerId: this.worker.id,
-			signature: WAMPClient.generateSignature(get(this.interProcessRPC, `${socketId}.${procedure}`, {})),
-		});
-		this.worker.sendToMaster(req);
-
-		this.saveCall(req, cb);
+		};
+		if (callback) {
+			this.worker.sendToMaster(req, (err, response) => {
+				if (err) {
+					return callback(err);
+				}
+				return callback(null, response.data);
+			});
+		} else {
+			this.worker.sendToMaster(req);
+		}
 	}
 
 	/**
 	 * @param {RPCRequestSchema} request
-	 * @param {Object} socket
+	 * @param {Object} respond
 	 * @returns {undefined}
 	 */
-	processWAMPRequest(request, socket) {
+	processWAMPRequest(request, respond) {
 		if (v.validate(request, schemas.RPCRequestSchema).valid) {
-			request.socketId = socket.id;
-			request.workerId = this.worker.id;
 			if (this.endpoints.slaveRpc[request.procedure] &&
 				typeof this.endpoints.slaveRpc[request.procedure] === 'function') {
-				this.endpoints.slaveRpc[request.procedure](request,
-					this.reply.bind(this, socket, request));
+				this.endpoints.slaveRpc[request.procedure](request, (error, data) => {
+					respond(error, {
+						type: schemas.RPCResponseSchema.id,
+						data,
+					});
+				});
 			} else {
 				request.type = schemas.MasterRPCRequestSchema.id;
-				this.worker.sendToMaster(request);
+				this.worker.sendToMaster(request, respond);
 			}
 		}
-	}
-
-	/**
-	 * @param {string} socketId
-	 * @returns {boolean}
-	 */
-	onSocketDisconnect(socketId) {
-		return delete this.interProcessRPC[socketId];
-	}
-
-	/**
-	 * @param {InterProcessRPCRequestSchema} request
-	 * @param {Function} callback
-	 */
-	saveCall(request, callback) {
-		if (!request) {
-			throw new Error('Internal error while attempting to save InterProcessRPCRequest: empty request');
-		}
-		if (!request.socketId) {
-			throw new Error('Internal error while attempting to save InterProcessRPCRequest: missing socketId');
-		}
-		if (!request.procedure) {
-			throw new Error('Internal error while attempting to save InterProcessRPCRequest: missing procedure');
-		}
-		if (!request.signature) {
-			throw new Error('Internal error while attempting to save InterProcessRPCRequest: missing signature');
-		}
-		if (!callback) {
-			throw new Error('Cannot save a call without callback');
-		}
-		const requestTimeout = setTimeout(() => {
-			callback('RPC response timeout exceeded');
-			this.deleteCall(request);
-		}, this.internalRequestsTimeoutMs);
-
-		if (!this.interProcessRPC[request.socketId]) {
-			this.interProcessRPC[request.socketId] = {};
-		}
-		if (!this.interProcessRPC[request.socketId][request.procedure]) {
-			this.interProcessRPC[request.socketId][request.procedure] = {};
-		}
-		this.interProcessRPC[request.socketId][request.procedure][request.signature] = {
-			callback, requestTimeout,
-		};
-	}
-
-	/**
-	 * @param {InterProcessRPCRequestSchema}[request={}] request
-	 * @returns {Function|false}
-	 */
-	getCall(request = {}) {
-		return get(this.interProcessRPC, `${request.socketId}.${request.procedure}.${request.signature}.callback`, false);
-	}
-
-	/**
-	 * @param {InterProcessRPCRequestSchema}[request={}] request
-	 * @returns {Timeout|false}
-	 */
-	getRequestTimeout(request = {}) {
-		return get(this.interProcessRPC, `${request.socketId}.${request.procedure}.${request.signature}.requestTimeout`, false);
-	}
-
-	/**
-	 * @param {InterProcessRPCResponseSchema} request
-	 * @returns {boolean}
-	 */
-	deleteCall(request) {
-		if (!request) {
-			throw new Error('Internal error while attempting to delete InterProcessRPCRequest: empty request');
-		}
-		if (!request.socketId) {
-			throw new Error('Internal error while attempting to delete InterProcessRPCRequest: missing socketId');
-		}
-		if (!request.procedure) {
-			throw new Error('Internal error while attempting to delete InterProcessRPCRequest: missing procedure');
-		}
-		if (!request.signature) {
-			throw new Error('Internal error while attempting to delete InterProcessRPCRequest: missing signature');
-		}
-		if (!this.getCall(request)) {
-			throw new Error(`There are no internal requests registered for socket: ${request.socketId}, procedure: ${request.procedure} with signature ${request.signature}`);
-		}
-		clearTimeout(this.getRequestTimeout(request));
-		return delete this.interProcessRPC[request.socketId][request.procedure][request.signature];
 	}
 
 	/**

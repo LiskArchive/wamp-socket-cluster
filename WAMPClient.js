@@ -21,15 +21,18 @@ class WAMPClient {
 		 */
 		wampSocket.call = (procedure, data) => new Promise((success, fail) => {
 			return socket.emit('rpc-request', {
-				data,
-				procedure,
-				signature,
 				type: schemas.RPCRequestSchema.id,
+				procedure,
+				data,
 			}, (err, result) => {
 				if (err) {
 					fail(err.toString());
 				} else {
-					success(result);
+					if (result) {
+						success(result.data);
+					} else {
+						success();
+					}
 				}
 			});
 		});
