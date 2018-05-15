@@ -2,12 +2,6 @@ const get = require('./utils').get;
 const schemas = require('./schemas');
 
 class WAMPClient {
-	/**
-	 * @returns {number}
-	 */
-	static get MAX_CALLS_ALLOWED() {
-		return 100;
-	}
 
 	/**
 	 * @returns {number}
@@ -76,9 +70,6 @@ class WAMPClient {
 		wampSocket.call = (procedure, data) => new Promise((success, fail) => {
 			if (!this.callsResolvers[procedure]) {
 				this.callsResolvers[procedure] = {};
-			}
-			if (Object.keys(this.callsResolvers[procedure]).length >= WAMPClient.MAX_CALLS_ALLOWED) {
-				return fail(`No more than ${WAMPClient.MAX_CALLS_ALLOWED} calls allowed`);
 			}
 			const signature = WAMPClient.generateSignature(this.callsResolvers[procedure]);
 			if (!signature) {

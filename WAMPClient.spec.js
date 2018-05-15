@@ -119,16 +119,6 @@ describe('WAMPClient', () => {
 				expect(Object.keys(wampClient.callsResolvers[procedureB]).length).equal(1);
 			});
 
-
-			it('should not create entries after exceeding the MAX_CALLS_ALLOWED limit', () => {
-				for (let i = 0; i <= WAMPClient.MAX_CALLS_ALLOWED; i += 1) {
-					wampSocket.call(validProcedure).catch(() => {});
-				}
-
-				expect(Object.keys(wampClient.callsResolvers[validProcedure]).length)
-					.equal(WAMPClient.MAX_CALLS_ALLOWED);
-			});
-
 			it('should fail while it is impossible to generate a signature', (done) => {
 				wampClient.callsResolvers = { [validProcedure]: { [frozenSignature]: true } };
 				const mathRandomStub = sinon.stub(Math, 'random').returns(0);
