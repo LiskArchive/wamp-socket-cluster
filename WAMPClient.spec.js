@@ -69,11 +69,9 @@ describe('WAMPClient', () => {
 				expect(wampSocket.emit.calledOnce).to.be.true();
 			});
 
-			it('should invoke socket.emit function with passed 2 arguments', () => {
+			it('should invoke socket.emit function with passed 3 arguments', () => {
 				wampSocket.call(validProcedure, someArgument);
-
-				expect(wampSocket.on.calledOnce).to.be.true();
-				expect(wampSocket.emit.getCalls()[0].args.length).equal(2);
+				expect(wampSocket.emit.getCalls()[0].args.length).equal(3);
 			});
 
 			it('should invoke socket.emit function with "rpc-request" as first argument', () => {
@@ -86,21 +84,7 @@ describe('WAMPClient', () => {
 				const rpcQuery = wampSocket.emit.getCalls()[0].args[1];
 				expect(rpcQuery).to.have.property('data').eql({ propA: 'valueA' });
 				expect(rpcQuery).to.have.property('procedure').equal(validProcedure);
-				expect(rpcQuery).to.have.property('signature');
 				expect(rpcQuery).to.have.property('type').equal('/RPCRequest');
-			});
-
-			it('should invoke socket.on function', () => {
-				wampSocket.call(validProcedure);
-				expect(wampSocket.on.calledOnce).to.be.true();
-			});
-
-			it('should invoke socket.on function with passed arguments', () => {
-				wampSocket.call(validProcedure, someArgument);
-				expect(wampSocket.on.calledOnce).to.be.true();
-				expect(wampSocket.on.getCalls()[0].args.length).equal(2);
-				expect(wampSocket.on.getCalls()[0].args[0]).equal('rpc-response');
-				expect(wampSocket.on.getCalls()[0].args[1]).to.be.a('function');
 			});
 
 			describe('resolving responses', () => {
@@ -123,21 +107,11 @@ describe('WAMPClient', () => {
 						propA: 'valueA',
 					};
 					validWampServerResponse = {
-						procedure: validProcedure,
 						type: RPCResponseSchema.id,
-						signature: frozenSignature,
-						success: true,
-						error: null,
+						procedure: validProcedure,
 						data: validData,
 					};
-					invalidWampServerResponse = {
-						procedure: validProcedure,
-						type: RPCResponseSchema.id,
-						signature: frozenSignature,
-						success: false,
-						error: validError,
-						data: validData,
-					};
+					invalidWampServerResponseError = 'Failed to perform RPC';
 				});
 
 				it('should resolve with passed data when server responds when passed valid WAMPResult', (done) => {
@@ -150,43 +124,34 @@ describe('WAMPClient', () => {
 						expect(err).to.be.empty();
 					});
 
-					const mockedServerResponse = wampSocket.on.getCalls()[0].args[1];
-					mockedServerResponse(validWampServerResponse);
+					const mockedServerResponse = wampSocket.emit.getCalls()[0].args[2];
+					mockedServerResponse(null, validWampServerResponse);
 				});
 
 				it('should reject with passed data when server responds with invalid WAMPResult', (done) => {
 					wampSocket.call(validProcedure).then((data) => {
 						expect(data).to.be.empty();
 					}).catch((err) => {
-						expect(err).equal(invalidWampServerResponse.error);
+						expect(err).equal(invalidWampServerResponseError);
 						done();
 					});
 
-					const mockedServerResponse = wampSocket.on.getCalls()[0].args[1];
-					mockedServerResponse(invalidWampServerResponse);
+					const mockedServerResponse = wampSocket.emit.getCalls()[0].args[2];
+					mockedServerResponse(invalidWampServerResponseError);
 				});
 
-				it('should log an error when provided with invalid request signature', (done) => {
-					invalidWampServerResponse.signature = 'invalid signature';
-					const sampleWampServerResponse = Object.assign(someArgument, invalidWampServerResponse);
-					const consoleLogStub = sinon.stub(console, 'log');
-					wampSocket.call(validProcedure);
-					const mockedServerResponse = wampSocket.on.getCalls()[0].args[1];
-
-					mockedServerResponse(sampleWampServerResponse);
-					expect(consoleLogStub.calledWith('Unable to find resolving function for procedure validProcedure with signature invalid signature')).to.be.true();
-					done();
-				});
 
 				describe('when requestsTimeoutMs is exceeded', () => {
 					let callRejectionSpy;
 
 					beforeEach((done) => {
 						clock.restore();
-						wampSocket.requestTimeout = 1;
+						wampSocket.ackTimeout = 1;
 						callRejectionSpy = sinon.spy();
 						wampSocket.call(validProcedure, validData).catch(callRejectionSpy);
-						setTimeout(done, wampSocket.requestTimeout + 1);
+						const mockedServerResponse = wampSocket.emit.getCalls()[0].args[2];
+						mockedServerResponse(new Error('RPC response timeout exceeded'));
+						setTimeout(done, wampSocket.ackTimeout + 1);
 					});
 
 					it('should reject promise', () => {
@@ -194,7 +159,8 @@ describe('WAMPClient', () => {
 					});
 
 					it('should reject promise with error = "RPC response timeout exceeded"', () => {
-						expect(callRejectionSpy.calledWithExactly('RPC response timeout exceeded')).to.be.true();
+						const error = new Error('RPC response timeout exceeded');
+						expect(callRejectionSpy.calledWithExactly(error.toString())).to.be.true();
 					});
 				});
 			});

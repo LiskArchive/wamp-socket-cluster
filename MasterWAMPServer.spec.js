@@ -105,25 +105,19 @@ describe('MasterWAMPServer', () => {
 				beforeEach(() => {
 					onWorkerStartHandler = fakeSCServer.on.getCalls()[0].args[1];
 					validWorker = { id: validWorkerId };
-					masterWAMPServer.reply = sinon.stub(masterWAMPServer, 'reply');
 				});
 
-				after(() => {
-					masterWAMPServer.reply.restore();
-				});
-
-				it('should call reply function with null as socket with validWorker', () => {
+				it('should call sendToWorker function with array of worker.id', () => {
 					onWorkerStartHandler(validWorker);
-					expect(masterWAMPServer.reply.calledWith(null)).to.be.true();
+					expect(masterWAMPServer.socketCluster.sendToWorker.calledWith(validWorker.id)).to.be.true();
 				});
 
 				it('should call reply function with valid MasterConfigRequestSchema', () => {
 					onWorkerStartHandler(validWorker);
-					expect(masterWAMPServer.reply.args[0][1]).to.eql({
+					expect(masterWAMPServer.socketCluster.sendToWorker.args[0][1]).to.eql({
+						type: '/MasterConfigRequestSchema',
 						registeredEvents: [],
 						config: {},
-						type: '/MasterConfigRequestSchema',
-						workerId: validWorkerId,
 					});
 				});
 			});
@@ -131,16 +125,10 @@ describe('MasterWAMPServer', () => {
 			describe('workerExit', () => {
 				let onWorkerExitHandler;
 				let validWorker;
-				let masterWAMPServerReplyStub;
 
 				beforeEach(() => {
 					onWorkerExitHandler = fakeSCServer.on.getCalls()[2].args[1];
 					validWorker = { id: validWorkerId };
-					masterWAMPServerReplyStub = sinon.stub(masterWAMPServer, 'reply');
-				});
-
-				after(() => {
-					masterWAMPServerReplyStub.restore();
 				});
 
 				it('should not modify empty workerIndices array', () => {
@@ -175,41 +163,4 @@ describe('MasterWAMPServer', () => {
 		});
 	});
 
-	describe('reply', () => {
-		let validRequest;
-		let validData;
-
-		beforeEach(() => {
-			validRequest = {
-				workerId: validWorkerId,
-				type: MasterRPCRequestSchema.id,
-			};
-			validData = { validKey: 'validValue' };
-		});
-
-		it('should invoke socketCluster.sendToWorker with a valid success WAMPResponse', () => {
-			masterWAMPServer.reply(null, validRequest, null, validData);
-			expect(masterWAMPServer.socketCluster.sendToWorker.calledWith(validWorkerId)).to.be.true();
-			expect(masterWAMPServer.socketCluster.sendToWorker.args[0][1]).to.eql({
-				workerId: 0,
-				success: true,
-				data: validData,
-				type: RPCResponseSchema.id,
-				error: null,
-			});
-		});
-
-		it('should invoke socketCluster.sendToWorker with a valid error WAMPResponse', () => {
-			const errorMessage = 'Custom error';
-			masterWAMPServer.reply(null, validRequest, errorMessage, validData);
-			expect(masterWAMPServer.socketCluster.sendToWorker.calledWith(validWorkerId)).to.be.true();
-			expect(masterWAMPServer.socketCluster.sendToWorker.args[0][1]).eql({
-				workerId: 0,
-				success: false,
-				data: validData,
-				type: RPCResponseSchema.id,
-				error: errorMessage,
-			});
-		});
-	});
 });
