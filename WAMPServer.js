@@ -16,6 +16,8 @@ class WAMPServer {
 		// register RPC endpoints
 		socket.on('rpc-request', (request, respond) => {
 			if (schemas.isValid(request, schemas.RPCRequestSchema)) {
+				// Needed for backwards-compatibility
+				request.socketId = socket.id;
 				this.processWAMPRequest(request, respond);
 			} else {
 				respond(`Failed to process RPC request "${request.procedure}" because the request schema was not valid`);
