@@ -78,12 +78,17 @@ class SlaveWAMPServer extends WAMPServer {
 		if (v.validate(request, schemas.RPCRequestSchema).valid) {
 			if (this.endpoints.slaveRpc[request.procedure] &&
 				typeof this.endpoints.slaveRpc[request.procedure] === 'function') {
-				this.endpoints.slaveRpc[request.procedure](request, (error, data) => {
-					respond(error, {
-						type: schemas.RPCResponseSchema.id,
-						data,
+
+				if (respond) {
+					this.endpoints.slaveRpc[request.procedure](request, (error, data) => {
+						respond(error, {
+							type: schemas.RPCResponseSchema.id,
+							data,
+						});
 					});
-				});
+				} else {
+					this.endpoints.slaveRpc[request.procedure](request);
+				}
 			} else {
 				request.type = schemas.MasterRPCRequestSchema.id;
 				this.worker.sendToMaster(request, respond);

@@ -77,7 +77,7 @@ describe('SlaveWAMPServer', () => {
 
 	describe('processWAMPRequest', () => {
 		let socketMock;
-		let respondMock;
+		let respondStub;
 		let validWAMPRequest;
 		let validSlaveToMasterRequest;
 
@@ -88,7 +88,7 @@ describe('SlaveWAMPServer', () => {
 				send: sinon.spy(),
 			};
 
-			respondMock = function () {};
+			respondStub = sinon.spy();
 
 			validWAMPRequest = {
 				procedure: 'procedureName',
@@ -102,15 +102,36 @@ describe('SlaveWAMPServer', () => {
 		});
 
 		it('should pass request forward to master if procedure is not registered in SlaveWAMPServer', () => {
-			slaveWAMPServer.processWAMPRequest(validWAMPRequest, respondMock);
+			slaveWAMPServer.processWAMPRequest(validWAMPRequest, respondStub);
 			expect(workerMock.sendToMaster.calledOnce).to.be.true();
-			expect(workerMock.sendToMaster.calledWith(validSlaveToMasterRequest, respondMock)).to.be.true();
+			expect(workerMock.sendToMaster.calledWith(validWAMPRequest)).to.be.true();
+			expect(workerMock.sendToMaster.args[0][1]).to.be.a('function');
+		});
+
+		it('should pass request forward to master if procedure is not registered in SlaveWAMPServer and respond handler is not provided', () => {
+			slaveWAMPServer.processWAMPRequest(validWAMPRequest);
+			expect(workerMock.sendToMaster.calledOnce).to.be.true();
+			expect(workerMock.sendToMaster.calledWith(validSlaveToMasterRequest)).to.be.true();
 		});
 
 		it('should invoke procedure on SlaveWAMPServer if registered before', () => {
 			const endpoint = { procedureName: sinon.spy() };
 			slaveWAMPServer.registerRPCSlaveEndpoints(endpoint);
-			slaveWAMPServer.processWAMPRequest(validWAMPRequest, respondMock);
+			slaveWAMPServer.processWAMPRequest(validWAMPRequest, respondStub);
+			expect(endpoint.procedureName.calledOnce).to.be.true();
+			expect(endpoint.procedureName.calledWith({
+				procedure: 'procedureName',
+				type: '/RPCRequest',
+			})).to.be.true();
+
+			expect(workerMock.sendToMaster.called).not.to.be.true();
+		});
+
+
+		it('should invoke procedure on SlaveWAMPServer if registered before and respond handler is not provided', () => {
+			const endpoint = { procedureName: sinon.spy() };
+			slaveWAMPServer.registerRPCSlaveEndpoints(endpoint);
+			slaveWAMPServer.processWAMPRequest(validWAMPRequest);
 			expect(endpoint.procedureName.calledOnce).to.be.true();
 			expect(endpoint.procedureName.calledWith({
 				procedure: 'procedureName',
@@ -123,7 +144,7 @@ describe('SlaveWAMPServer', () => {
 		it('should invoke procedure on SlaveWAMPServer if reassigned before', () => {
 			const endpoint = { procedureName: sinon.spy() };
 			slaveWAMPServer.reassignRPCSlaveEndpoints(endpoint);
-			slaveWAMPServer.processWAMPRequest(validWAMPRequest, respondMock);
+			slaveWAMPServer.processWAMPRequest(validWAMPRequest, respondStub);
 			expect(endpoint.procedureName.calledOnce).to.be.true();
 			expect(endpoint.procedureName.calledWith({
 				procedure: 'procedureName',
@@ -137,7 +158,7 @@ describe('SlaveWAMPServer', () => {
 			const endpoint = { procedureName: sinon.spy() };
 			slaveWAMPServer.registerRPCEndpoints(endpoint);
 			slaveWAMPServer.registerRPCSlaveEndpoints(endpoint);
-			slaveWAMPServer.processWAMPRequest(validWAMPRequest, respondMock);
+			slaveWAMPServer.processWAMPRequest(validWAMPRequest, respondStub);
 			expect(endpoint.procedureName.calledOnce).to.be.true();
 			expect(endpoint.procedureName.calledWith({
 				procedure: 'procedureName',
