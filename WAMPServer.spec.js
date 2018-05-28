@@ -83,18 +83,16 @@ describe('WAMPServer', () => {
 	});
 
 	describe('processWAMPRequest', () => {
-		it('should throw an error if no while attempt to invoke not registered procedure', () => {
+		it('should throw an error when trying to invoke an unregistered procedure', () => {
 			const socket = {
 				on: sinon.spy(),
 				emit: sinon.spy(),
 			};
 			const wampServer = new WAMPServer();
 			wampServer.upgradeToWAMP(socket);
-			try {
-				wampServer.processWAMPRequest({ procedure: 'not-registered-procedure' }, socket);
-			} catch (ex) {
-				expect(ex.toString()).equal(new Error('Attempt to call unregistered procedure not-registered-procedure').toString());
-			}
+			wampServer.processWAMPRequest({ procedure: 'not-registered-procedure' }, (err) => {
+				expect(/Procedure not-registered-procedure not registered on WAMPServer/.test(err.toString())).to.be.true();
+			});
 		});
 
 		it('should invoke procedure when proper request passed', () => {
@@ -107,7 +105,7 @@ describe('WAMPServer', () => {
 			const wampServer = new WAMPServer();
 			wampServer.upgradeToWAMP(socket);
 			wampServer.registerRPCEndpoints(endpoint);
-			wampServer.processWAMPRequest({ procedure: 'procedureA', data: 'valueA' }, socket);
+			wampServer.processWAMPRequest({ procedure: 'procedureA', data: 'valueA' }, () => {});
 			expect(endpoint.procedureA.calledOnce).to.be.true();
 			expect(endpoint.procedureA.calledWith('valueA')).to.be.true();
 		});
